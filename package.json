@@ -1,0 +1,43 @@
+{
+  "name": "auroral-js-gateway",
+  "version": "0.0.1",
+  "description": "XMPP Gateway for AURORAL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node ./dist/src/server.js",
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "start:watch": "nodemon ./dist/src/server.js",
+    "dev": "concurrently \"npm run build:watch\" \"npm run start:watch\"",
+    "prod": "concurrently \"npm run build\" \"npm run start\""
+  },
+  "keywords": [
+    "XMPP",
+    "AURORAL"
+  ],
+  "author": "Jorge Almela",
+  "license": "MIT",
+  "dependencies": {
+    "@xmpp/client": "^0.13.1",
+    "@xmpp/debug": "^0.13.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "errorhandler": "^1.5.1",
+    "express": "^4.18.1",
+    "stoppable": "^1.1.0",
+    "winston": "^3.7.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/errorhandler": "^1.5.0",
+    "@types/express": "^4.17.13",
+    "@types/stoppable": "^1.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.29.0",
+    "@typescript-eslint/parser": "^5.29.0",
+    "concurrently": "^7.2.2",
+    "eslint": "^8.18.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "nodemon": "^2.0.16"
+  }
+}
