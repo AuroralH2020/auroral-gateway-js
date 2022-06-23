@@ -80,3 +80,15 @@ export const send = async (req: Express.Request, res: Express.Response) => {
         return responseBuilder(error.status, res, error.message)
     }
 }
+
+type DummyCtrl = expressTypes.Controller<{}, { }, {}, null, {}>
+
+export const dummy: DummyCtrl = async (req, res) => {
+    try {
+        return responseBuilder(HttpStatusCode.OK, res, null, null)
+	} catch (err) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+	}
+}
