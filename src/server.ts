@@ -4,12 +4,21 @@ import { stopAllXMPPClients } from './core/xmpp'
 import { app } from './app'
 import { Config } from './config'
 import { logger } from './utils'
+import { Token } from './core/security'
 
 /**
  * Error Handler. Provides full stack - only in dev
  */
 if (Config.NODE_ENV === 'development') {
   app.use(errorHandler())
+}
+
+/**
+ * Bootstrap app
+ * Initialize gateway
+ */
+function bootstrap () {
+  Token.start()
 }
 
 /*
@@ -26,6 +35,7 @@ function startServer() {
       `  App is running at ${app.get('ip')}:${app.get('port')} in ${app.get('env')} mode`)
     logger.info(`  App root path is ${Config.HOME_PATH}`)
     logger.info('  Press CTRL-C to stop\n')
+    bootstrap()
   }), 3000)
 }
 

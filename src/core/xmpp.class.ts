@@ -107,7 +107,7 @@ export class XMPP {
         (error, message) => {
           this.msgEvents.removeAllListeners(requestId)
           callback(error, message)
-        }, 10000, true, 'Timeout awaiting response (10s)', callback
+        }, Number(Config.XMPP.ROSTER_REFRESH), true, 'Timeout awaiting response (10s)', callback
       )
       this.msgTimeouts.set(requestId, timeout) // Add to timeout list
       this.msgEvents.on(requestId, (data) => {
