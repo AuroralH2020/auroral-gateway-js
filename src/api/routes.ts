@@ -44,9 +44,9 @@ ApiRouter
 .delete('/objects/:oid/actions/:aid/tasks/:tid', ctrl.dummy)
 
 // REGISTRATION
-.get('/agents/:agid/objects', ctrl.dummy) // getRegistrations
-.post('/agents/:agid/objects', ctrl.dummy) // postRegistrations
-.put('/agents/:agid/objects', ctrl.dummy) // updateRegistration
+.get('/agents/:agid/objects', ctrl.getRegistrations) // getRegistrations
+.post('/agents/:agid/objects', ctrl.postRegistrations) // postRegistrations
+.put('/agents/:agid/objects', ctrl.updateRegistrations) // updateRegistration
 .post('/agents/:agid/objects/delete', ctrl.dummy) // removeRegistrations
 
 // DISCOVERY
