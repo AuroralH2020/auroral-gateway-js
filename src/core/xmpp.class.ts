@@ -20,7 +20,7 @@ type Message = {
   isRequest: number, // 1 = isReq, 0 = isNotReq
   requestId: string, // ID of the message
   sourceAgid: string,
-  sourceOid: string, 
+  sourceOid: string,
   destinationOid: string,
   requestBody: string | null,
   attributes: JsonType,
@@ -32,7 +32,8 @@ export class XMPP {
   // Class variables
   
   readonly oid: string
-  private rosterItems: Map<string, RosterItem> = new Map<string, RosterItem>()
+  private rosterItemsOid: Map<string, RosterItem> = new Map<string, RosterItem>()
+  private rosterItemsJid: Map<string, RosterItem> = new Map<string, RosterItem>()
   private rosterReloadTimer: NodeJS.Timer | undefined = undefined
   private msgTimeouts: Map<string, NodeJS.Timeout> = new Map<string,  NodeJS.Timeout>() // Timers to timeout requests
   private msgEvents: EventEmmiter = new EventEmmiter() // Handles events inside this class
@@ -78,51 +79,55 @@ export class XMPP {
   }
 
   public async sendStanza (destinationOid: string, body: string | null, callback: (err: boolean, message: string) => void) {
-        // Check if destination is in roster
-        if (!this.rosterItems.has(destinationOid)) {
-          logger.warn('Destination ' + destinationOid + ' is not in the roster of ' + this.oid)
-          return
-        }
+      // Check if destination is in roster
+      // Works in AURORAL, update for federated scenario!!! Same OID under different domain would be possible
+      const jid = this.rosterItemsOid.get(destinationOid)?.jid
+      if (!jid) {
+        logger.warn('Destination ' + destinationOid + ' is not in the roster of ' + this.oid)
+        return
+      }
 
-        // Add random ID to the request
-        const requestId = crypto.randomUUID()
+      // Add random ID to the request
+      const requestId = crypto.randomUUID()
 
-        // Create message payload
-        const payload: Message = { messageType: 1, requestId, requestOperation: 1, sourceAgid: 'dummy', sourceOid: this.oid, destinationOid, requestBody: body, isRequest: 1, parameters: {}, attributes: {} }
-    
-        // Build XML and send message
-        const message = xml(
-          'message',
-          { type: 'chat', to: destinationOid + '@' + Config.XMPP.DOMAIN },
-          xml('body', {}, JSON.stringify(payload)),
-        )
-        await this.client.send(message)
-        logger.debug('Message sent by ' + this.oid + ' through XMPP network... Destination ' + destinationOid)
+      // Create message payload
+      const payload: Message = { messageType: 1, requestId, requestOperation: 1, sourceAgid: 'dummy', sourceOid: this.oid, destinationOid, requestBody: body, isRequest: 1, parameters: {}, attributes: {} }
+  
+      // Build XML and send message
+      const message = xml(
+        'message',
+        { type: 'chat', to: jid },
+        xml('body', {}, JSON.stringify(payload)),
+      )
+      await this.client.send(message)
+      logger.debug('Message sent by ' + this.oid + ' through XMPP network... Destination ' + destinationOid)
 
-        // Waiting for event response or timeout
-        const timeout  = setTimeout(
-          (error, message) => {
-            this.msgEvents.removeAllListeners(requestId)
-            callback(error, message)
-          }, 10000, true, 'Timeout awaiting response (10s)', callback
-        )
-        this.msgTimeouts.set(requestId, timeout) // Add to timeout list
-        this.msgEvents.on(requestId, (data) => {
-          // Cancel timeout and return response
-          const timeoutToCancel = this.msgTimeouts.get(requestId)
-          clearTimeout(timeoutToCancel)
-          this.msgTimeouts.delete(requestId)
-          // Remove listener
+      // Waiting for event response or timeout
+      const timeout  = setTimeout(
+        (error, message) => {
           this.msgEvents.removeAllListeners(requestId)
-          callback(false, data)
-        })
+          callback(error, message)
+        }, 10000, true, 'Timeout awaiting response (10s)', callback
+      )
+      this.msgTimeouts.set(requestId, timeout) // Add to timeout list
+      this.msgEvents.on(requestId, (data) => {
+        // Cancel timeout
+        const timeoutToCancel = this.msgTimeouts.get(requestId)
+        clearTimeout(timeoutToCancel)
+        this.msgTimeouts.delete(requestId)
+        // Remove listener
+        this.msgEvents.removeAllListeners(requestId)
+        // Return response
+        callback(false, data)
+      })
   }
 
+  // Return object roster
   public async getRoster () {
-    this.rosterItems.forEach(it => {
+    this.rosterItemsOid.forEach(it => {
       logger.debug(it)
     })
-    return this.rosterItems
+    return this.rosterItemsOid
   }
 
   // @TBD improve this function by calculating the difference and adding/removing items based on that
@@ -131,9 +136,11 @@ export class XMPP {
     logger.debug('Reloading roster of oid ' +  this.oid + '...')
     const roster = await this.client.iqCaller.get(xml('query', 'jabber:iq:roster'))
     const rosterItems = roster.getChildren('item',  'jabber:iq:roster')
-    this.rosterItems.clear()
+    this.rosterItemsOid.clear()
+    this.rosterItemsJid.clear()
     for (let i = 0, l = rosterItems.length; i < l; i++) {
-        this.rosterItems.set(rosterItems[i].attrs.name, rosterItems[i].attrs)
+        this.rosterItemsJid.set(rosterItems[i].attrs.jid, rosterItems[i].attrs)
+        this.rosterItemsOid.set(rosterItems[i].attrs.name, rosterItems[i].attrs)
     }
   }
 
@@ -149,12 +156,12 @@ export class XMPP {
     })
   }
 
-  private async respondStanza (destinationOid: string, requestId: string, body: string) {
+  private async respondStanza (destinationOid: string, jid: string, requestId: string, body: string) {
         const payload: Message = { messageType: 1, requestId, requestOperation: 1, sourceAgid: 'dummy', sourceOid: this.oid, destinationOid, requestBody: body, isRequest: 0, parameters: {}, attributes: {} }
     
         const message = xml(
           'message',
-          { type: 'chat', to: destinationOid + '@' + Config.XMPP.DOMAIN },
+          { type: 'chat', to: jid },
           xml('body', {}, JSON.stringify(payload)),
         )
         await this.client.send(message)
@@ -174,24 +181,29 @@ export class XMPP {
 
   private async onStanza (stanza: any) {
     if (stanza.is('message')) {
-      const { to, from, type } =  stanza.attrs
+      const { to, from, type } =  stanza.attrs as { to: string, from: string, type: string}
       if (type === 'error') {
           logger.debug(this.oid + ' error message...')
           logger.debug({ to, from })
-          // @TBD Check if attrs.to and body.originId are the same!!! Otherwise tampering attempt error
           logger.debug(stanza.getChild('body').text())
           logger.debug(stanza.getChild('error').text())
       } else if (type === 'chat') {
           const body: Message = JSON.parse(stanza.getChild('body').text())
+          const jid = this.rosterItemsOid.get(body.sourceOid)?.jid
+          // Check if origin is in roster
+          if (!jid) {
+            logger.warn('Origin ' + body.sourceOid + ' is not in the roster of ' + this.oid + ' dropping message...')
+            return
+          }
+          // Check if attrs.from and body.originId are the same!!! Otherwise tampering attempt error
+          if (!from.includes(jid)) {
+            logger.error('Tampering attempt sourceOid: ' + jid + ' differs from real origin ' + from + '!!')
+            return
+          }
           if (body.isRequest === 1) {
             // If it is a request, respond to it with the same requestId
             logger.debug(this.oid + ' receiving message request...')
-            // Check if origin is in roster
-            if (!this.rosterItems.has(body.sourceOid)) {
-              logger.warn('Origin ' + body.sourceOid + ' is not in the roster of ' + this.oid + ' dropping message...')
-            } else {
-              await this.respondStanza(from, body.requestId, 'Custom response')
-            }
+            await this.respondStanza(body.sourceOid, from, body.requestId, 'Custom response')
           } else {
             // If it is a response, emit event with requestId to close the HTTP connection
             logger.debug(this.oid + ' receiving message response...')
@@ -203,7 +215,7 @@ export class XMPP {
     } else {
       // logger.debug('Stanza received: Not message type')
       // logger.debug(stanza.toString())
-    } 
+    }  
   }
 
   private onOnline () {

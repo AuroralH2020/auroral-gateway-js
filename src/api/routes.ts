@@ -18,5 +18,5 @@ ApiRouter
 .get('/roster/:oid', ctrl.roster)
 .get('/stop/:oid', ctrl.stop)
 .post('/message/:oid', ctrl.send)
-   
+
 export { ApiRouter }
