@@ -63,19 +63,19 @@ export const init: InitCtrl = async (req, res) => {
 	}
 }
 
-// type SendCtrl = expressTypes.Controller<{ oid: string }, { destination: string, message: string }, {}, string, {}>
+type SendCtrl = expressTypes.Controller<{ oid: string }, { destination: string, message: string }, {}, string, {}>
 
-export const send = async (req: Express.Request, res: Express.Response) => {
+export const send: SendCtrl = async (req, res) => {
     const { oid } = req.params
     const { destination, message } = req.body
     try {
-        sendMessage(oid, destination, message, (error, message) => {
-            if (error) {
-                return responseBuilder(HttpStatusCode.SERVICE_UNAVAILABLE, res, message)       
-            }
-            return responseBuilder(HttpStatusCode.OK, res, null, message)
-        })
-    } catch (err) {
+        const response = await sendMessage(oid, destination, message)
+        if (response.error) {
+            return responseBuilder(HttpStatusCode.SERVICE_UNAVAILABLE, res, response.message)       
+        } else {
+            return responseBuilder(HttpStatusCode.OK, res, null, response.message)
+        }
+    } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)
         return responseBuilder(error.status, res, error.message)

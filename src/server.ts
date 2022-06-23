@@ -3,8 +3,9 @@ import stoppable from 'stoppable'
 import { stopAllXMPPClients } from './core/xmpp'
 import { app } from './app'
 import { Config } from './config'
-import { logger } from './utils'
 import { Token } from './core/security'
+import { nm } from './core/nm-connector'
+import { logger, errorHandler as eH } from './utils'
 
 /**
  * Error Handler. Provides full stack - only in dev
@@ -17,8 +18,23 @@ if (Config.NODE_ENV === 'development') {
  * Bootstrap app
  * Initialize gateway
  */
-function bootstrap () {
-  Token.start()
+async function bootstrap () {
+  try {
+    logger.info('##############################################')
+    logger.info('##############################################')
+    logger.info('Starting AURORAL gateway!!')
+    await Token.start()
+    logger.info(await nm.handshake())
+    logger.info('##############################################')
+    logger.info('##############################################')
+  } catch (err: unknown) {
+    const error = eH(err)
+    logger.error(error.message)
+    logger.error('Gateway was stopped due to errors...')
+    logger.info('##############################################')
+    logger.info('##############################################')
+    process.exit(1)
+  }
 }
 
 /*

@@ -37,19 +37,22 @@ class TokenGenerator {
 
     public start () {
         // Define token claims
-        this.claims = {
-            iss: this.iss,
-            aud: this.aud,
-            exp: Math.floor(Date.now() / 1000) + Number(Config.TOKEN.TTL),
-            iat: Math.floor(Date.now() / 1000)
-        }
-        this.createToken((token) => {
-            this._token = token
-            // Set up token refresh 
-            this.refreshTimer = setInterval(() => {
-                this.refreshToken()
-            }, Number(Config.TOKEN.REFRESH))
-            logger.info('Token was created')
+        return new Promise((resolve, reject) => {
+            this.claims = {
+                iss: this.iss,
+                aud: this.aud,
+                exp: Math.floor(Date.now() / 1000) + Number(Config.TOKEN.TTL),
+                iat: Math.floor(Date.now() / 1000)
+            }
+            this.createToken((token) => {
+                this._token = token
+                // Set up token refresh 
+                this.refreshTimer = setInterval(() => {
+                    this.refreshToken()
+                }, Number(Config.TOKEN.REFRESH))
+                logger.info('Token was created')
+                resolve(true)
+            })
         })
     }
 

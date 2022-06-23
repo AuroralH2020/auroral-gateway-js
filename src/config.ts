@@ -16,6 +16,10 @@ export const Config = {
 	NODE_ENV: process.env.NODE_ENV!,
 	IP: process.env.XMPP_IP!,
 	PORT: process.env.XMPP_PORT!,
+	NM: {
+		HOST: process.env.NM_HOST!,
+		TIMEOUT: process.env.NM_TIMEOUT || 10000
+	},
 	TOKEN: {
 		TTL: process.env.TOKEN_TTL || 86400, // 1 day
 		REFRESH: process.env.TOKEN_REFRESH || 14400000 // 4h

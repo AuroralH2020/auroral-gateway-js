@@ -56,14 +56,16 @@ export const reloadRoster = async function (oid: string) {
     }
 }
 
-export const sendMessage = function (oid: string, destination: string, message: string, callback: (error: boolean, message: string) => void) {
-    const xmpp = clients.get(oid)
-    if (xmpp) {
-        xmpp.sendStanza(destination, message, (error, message) => {
-            callback(error, message)
-        })
-    } else {
-        logger.warn('XMPP client not found')
-        callback(true, 'OID not found on destination')
-    }
+export const sendMessage = function (oid: string, destination: string, message: string): Promise<{error: boolean, message: string}> {
+    return new Promise((resolve, reject) => {
+        const xmpp = clients.get(oid)
+        if (xmpp) {
+                xmpp.sendStanza(destination, message, (error, message) => {
+                    resolve({ error, message })
+                })
+        } else {
+            logger.warn('XMPP client not found')
+            resolve({ error: true, message: 'OID not found on destination' })
+        }
+    })
 }

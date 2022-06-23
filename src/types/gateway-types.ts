@@ -5,13 +5,13 @@ import { JsonType } from './misc-types'
 /**
  * Generic gateway response
  */
-// export interface GatewayResponse<T = JsonType> {
-//     error: boolean
-//     statusCode: number
-//     statusCodeReason: string
-//     contentType: string
-//     message: T[]
-// }
+export interface GatewayResponse<T = JsonType> {
+    error: boolean
+    statusCode: number
+    statusCodeReason: string
+    contentType: string
+    message: T[]
+}
 
 // Specific gateway responses
 
@@ -29,13 +29,11 @@ export interface GtwUpdateResponse {
     test: boolean // TBD 
 }
 
-
 export type GtwDeleteResponse = {
     oid: string, 
     statusCode: number,
     error?: string
 }
-
 
 // Other related types
 
