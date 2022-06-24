@@ -4,8 +4,8 @@ import { logger } from './utils/logger'
 dotenv.config()
 
 if (
-	!process.env.NODE_ENV || !process.env.XMPP_IP
-	|| !process.env.XMPP_PORT
+	!process.env.NODE_ENV || !process.env.IP
+	|| !process.env.PORT
 ) {
 	logger.error('Please provide valid .env configuration')
 	process.exit()
@@ -14,11 +14,11 @@ if (
 export const Config = {
 	HOME_PATH: process.cwd(),
 	NODE_ENV: process.env.NODE_ENV!,
-	IP: process.env.XMPP_IP!,
-	PORT: process.env.XMPP_PORT!,
+	IP: process.env.IP!,
+	PORT: process.env.PORT!,
 	NM: {
 		HOST: process.env.NM_HOST!,
-		TIMEOUT: process.env.NM_TIMEOUT || 10000
+		TIMEOUT: process.env.NM_TIMEOUT || 10000 // 10 sec
 	},
 	TOKEN: {
 		TTL: process.env.TOKEN_TTL || 86400, // 1 day
@@ -32,6 +32,6 @@ export const Config = {
 		SERVICE: process.env.XMPP_SERVICE!,
 		DOMAIN: process.env.XMPP_DOMAIN!,
 		RESOURCE: process.env.XMPP_RESOURCE!,
-		ROSTER_REFRESH: process.env.ROSTER_REFRESH || 600000 // Defaults 10 min
+		ROSTER_REFRESH: process.env.ROSTER_REFRESH || 300000 // Defaults 5 min
 	}
 }

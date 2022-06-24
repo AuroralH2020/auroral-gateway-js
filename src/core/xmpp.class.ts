@@ -42,6 +42,7 @@ export class XMPP {
   public constructor (oid: string, password: string) {
     this.oid = oid
     this.client = this.createClient(oid, password)
+    logger.info('AURORAL item with ID ' + this.oid + ' was added to the Node XMPP clients pool')
     // Listeners
     this.client.on('error', (err: unknown) => {
         this.onError(err)
@@ -107,7 +108,7 @@ export class XMPP {
         (error, message) => {
           this.msgEvents.removeAllListeners(requestId)
           callback(error, message)
-        }, Number(Config.XMPP.ROSTER_REFRESH), true, 'Timeout awaiting response (10s)', callback
+        }, Number(Config.NM.TIMEOUT), true, 'Timeout awaiting response (10s)', callback
       )
       this.msgTimeouts.set(requestId, timeout) // Add to timeout list
       this.msgEvents.on(requestId, (data) => {
@@ -133,7 +134,7 @@ export class XMPP {
   // @TBD improve this function by calculating the difference and adding/removing items based on that
   // This way we do not remove from roster any items that should be there for any amount of time
   public async reloadRoster () {
-    logger.debug('Reloading roster of oid ' +  this.oid + '...')
+    logger.info('Reloading roster of oid ' +  this.oid + '...')
     const roster = await this.client.iqCaller.get(xml('query', 'jabber:iq:roster'))
     const rosterItems = roster.getChildren('item',  'jabber:iq:roster')
     this.rosterItemsOid.clear()
@@ -219,13 +220,13 @@ export class XMPP {
   }
 
   private onOnline () {
-    logger.info('XMPP server successfully connected!')
+    logger.info('XMPP client with oid ' + this.oid + ' was logged in!')
     // Makes itself available
     this.client.send(xml('presence'))
     // Reload roster
     this.reloadRoster()
     this.rosterReloadTimer = setInterval(() => {
         this.reloadRoster()
-    }, 60000) // 1 min
+    }, Number(Config.XMPP.ROSTER_REFRESH)) // 10 min
   }
 }

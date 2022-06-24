@@ -1,6 +1,6 @@
 import errorHandler from 'errorhandler'
 import stoppable from 'stoppable'
-import { stopAllXMPPClients } from './core/xmpp'
+import { stopAllXMPPClients, initialize, startXMPPClient } from './core/xmpp'
 import { app } from './app'
 import { Config } from './config'
 import { Token } from './core/security'
@@ -25,6 +25,8 @@ async function bootstrap () {
     logger.info('Starting AURORAL gateway!!')
     await Token.start()
     logger.info(await nm.handshake())
+    await initialize(Config.GATEWAY.ID, Config.GATEWAY.PASSWORD)
+    await startXMPPClient(Config.GATEWAY.ID)
     logger.info('##############################################')
     logger.info('##############################################')
   } catch (err: unknown) {
