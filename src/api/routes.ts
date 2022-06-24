@@ -47,24 +47,23 @@ ApiRouter
 .get('/agents/:agid/objects', nm_ctrl.getRegistrations) // getRegistrations
 .post('/agents/:agid/objects', nm_ctrl.postRegistrations) // postRegistrations
 .put('/agents/:agid/objects', nm_ctrl.updateRegistrations) // updateRegistration
-.post('/agents/:agid/objects/delete', nm_ctrl.dummy) // removeRegistrations
+.post('/agents/:agid/objects/delete', nm_ctrl.removeRegistration) // removeRegistrations
 
 // DISCOVERY
-.get('/objects', nm_ctrl.dummy)  // discovery
-.get('/discovery/nodes/organisation', nm_ctrl.dummy) // organisationNodes
-.get('/discovery/nodes/community/:commid', nm_ctrl.dummy) // communityNodes
-.get('/discovery/items/organisation', nm_ctrl.dummy) // organisationItems
-.get('/discovery/items/contract/:ctid', nm_ctrl.dummy) // contractItems
+.get('/objects', nm_ctrl.dummy)  // discovery 
+.get('/discovery/nodes/organisation', nm_ctrl.getNodesInMyOrganisation) // organisationNodes
+.get('/discovery/nodes/community/:commid', nm_ctrl.getNodesInCommunity) // communityNodes
+.get('/discovery/items/organisation', nm_ctrl.getItemsInMyOrganisation) // organisationItems
+.get('/discovery/items/contract/:ctid', nm_ctrl.getItemsInContract) // contractItems
 .post('/objects/:oid', nm_ctrl.dummy) // discoveryRemote
-.get('/agents/:cid/:reqid', nm_ctrl.dummy) // getCid
-.get('/agents/partners', nm_ctrl.dummy) // getPartners
-.get('/agents/communities/', nm_ctrl.dummy) // getCommunities
-.get('/agents/partners/:cid', nm_ctrl.dummy) // getPartnerInfo
+.get('/agents/cid/:reqid', nm_ctrl.getCidFromReqid) // getCid
+.get('/agents/partners', nm_ctrl.getPartners) // getPartners
+.get('/agents/communities/', nm_ctrl.getCommunities) // getCommunities
+.get('/agents/partners/:cid', nm_ctrl.getPartner) // getPartnerInfo
 
 // SECURITY
-.get('/security/relationship/:rid', nm_ctrl.dummy) // getRelationship
-.get('/security/privacy', nm_ctrl.dummy) // getItemsPrivacy
-.get('/security/contracts/:cid', nm_ctrl.dummy) // getContracts
+.get('/security/privacy', nm_ctrl.getAgentPrivacy) // getItemsPrivacy
+.get('/security/contracts/:cid', nm_ctrl.getContractedItemsByCid) // getContracts
 
 // HEALTHCHECK
 .get('/objects/login', nm_ctrl.dummy) 
@@ -73,5 +72,6 @@ ApiRouter
 // .get('/objects/:oid/properties', ctrl.dummy)
 // .put('/agents/:agid/objects/update', ctrl.dummy)
 // .get('/discovery/nodes/organisation/:cid', ctrl.dummy)
+// .get('/security/relationship/:rid', nm_ctrl.dummy) 
 
 export { ApiRouter }
