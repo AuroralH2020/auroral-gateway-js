@@ -1,8 +1,16 @@
+/**
+ * Interface to XMPP engine
+ */
 import { logger } from '../utils'
 import { XMPP } from './xmpp.class'
 
 const clients = new Map<string, XMPP>()
 
+/**
+ * Generator of XMPP clients
+ * @param oid 
+ * @param password 
+ */
 export const initialize = function (oid: string, password: string) {
     clients.set(
         oid,
@@ -10,6 +18,10 @@ export const initialize = function (oid: string, password: string) {
     )
 }
 
+/**
+ * Login XMPP client
+ * @param oid 
+ */
 export const startXMPPClient = async function (oid: string) {
     const xmpp = clients.get(oid)
     if (xmpp) {
@@ -19,6 +31,11 @@ export const startXMPPClient = async function (oid: string) {
     }
 }
 
+/**
+ * Logout XMPP client
+ * @param oid 
+ * @param callback 
+ */
 export const stopXMPPClients = async function (oid: string, callback: (err?: string) => void) {
     const xmpp = clients.get(oid)
     if (xmpp) {
@@ -27,6 +44,10 @@ export const stopXMPPClients = async function (oid: string, callback: (err?: str
     }
 }
 
+/**
+ * Logout all XMPP clients connected with this app
+ * @param callback 
+ */
 export const stopAllXMPPClients = async function (callback: (err?: string) => void) {
    const keys = Array.from(clients.keys())
    for (let i = 0, l = keys.length; i < l; i++) {
@@ -38,6 +59,10 @@ export const stopAllXMPPClients = async function (callback: (err?: string) => vo
    callback()
 }
 
+/**
+ * Get roster of one XMPP client
+ * @param oid 
+ */
 export const getRoster = async function (oid: string) {
     const xmpp = clients.get(oid)
     if (xmpp) {
@@ -47,6 +72,10 @@ export const getRoster = async function (oid: string) {
     }
 }
 
+/**
+ * Refresh roster of one XMPP client
+ * @param oid 
+ */
 export const reloadRoster = async function (oid: string) {
     const xmpp = clients.get(oid)
     if (xmpp) {
@@ -56,6 +85,13 @@ export const reloadRoster = async function (oid: string) {
     }
 }
 
+/**
+ * Send stanza to some other client of the XMPP network
+ * @param oid 
+ * @param destination 
+ * @param message 
+ * @returns 
+ */
 export const sendMessage = function (oid: string, destination: string, message: string): Promise<{error: boolean, message: string}> {
     return new Promise((resolve, reject) => {
         const xmpp = clients.get(oid)
