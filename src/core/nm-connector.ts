@@ -43,7 +43,7 @@ export const nm = {
      */
     handshake: async function(): Promise<GenericResponse<string>> {
         try {
-            const msg = await request('handshake', 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+            const msg = await request('handshake', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
             return msg
         } catch (err: unknown) {
             const error = errorHandler(err)
@@ -103,8 +103,8 @@ export const nm = {
      * @param oids 
      * @returns jsonType
      */
-    modifyItems: async function(agid: string, oids: JsonType[]): Promise<GenericResponse<JsonType>> {
-        const msg = await request('items/modify', 'PUT', { agid, oids }, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+    modifyItems: async function(agid: string, items: JsonType[]): Promise<GenericResponse<JsonType>> {
+        const msg = await request('items/modify', 'PUT', { agid, items }, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
         return msg
     },
     /**
