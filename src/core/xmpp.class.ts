@@ -1,7 +1,7 @@
 import { client, xml } from '@xmpp/client'
 import EventEmmiter from 'node:events'
 import crypto from 'crypto'
-import { XMPPMessage, RosterItem } from '../types/xmpp-types'
+import { XMPPMessage, RosterItem, RequestOperation, MessageType, Options } from '../types/xmpp-types'
 import { HttpStatusCode, logger, errorHandler, MyError  } from '../utils'
 import { Config  } from '../config'
 
@@ -13,7 +13,7 @@ export class XMPP {
   private rosterItemsOid: Map<string, RosterItem> = new Map<string, RosterItem>()
   private rosterItemsJid: Map<string, RosterItem> = new Map<string, RosterItem>()
   private rosterReloadTimer: NodeJS.Timer | undefined = undefined
-  private msgTimeouts: Map<string, NodeJS.Timeout> = new Map<string,  NodeJS.Timeout>() // Timers to timeout requests
+  private msgTimeouts: Map<number, NodeJS.Timeout> = new Map<number,  NodeJS.Timeout>() // Timers to timeout requests
   private msgEvents: EventEmmiter = new EventEmmiter() // Handles events inside this class
   public client
 
@@ -57,7 +57,7 @@ export class XMPP {
       }
   }
 
-  public async sendStanza (destinationOid: string, body: string | null, callback: (err: boolean, message: string) => void) {
+  public async sendStanza (destinationOid: string, body: string | null, requestOperation: RequestOperation, messageType: MessageType, callback: (err: boolean, message: string) => void) {
       // Check if destination is in roster
       // Works in AURORAL, update for federated scenario!!! Same OID under different domain would be possible
       const jid = this.rosterItemsOid.get(destinationOid)?.jid
@@ -67,10 +67,10 @@ export class XMPP {
       }
 
       // Add random ID to the request
-      const requestId = crypto.randomUUID()
+      const requestId = crypto.randomBytes(4).readUInt32BE()
 
       // Create message payload
-      const payload: XMPPMessage = { messageType: 1, requestId, requestOperation: 1, sourceAgid: 'dummy', sourceOid: this.oid, destinationOid, requestBody: body, isRequest: 1, parameters: {}, attributes: {} }
+      const payload: XMPPMessage = { messageType, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, requestBody: body, responseBody: null, parameters: {}, attributes: {} }
   
       // Build XML and send message
       const message = xml(
@@ -84,18 +84,18 @@ export class XMPP {
       // Waiting for event response or timeout
       const timeout  = setTimeout(
         (error, message) => {
-          this.msgEvents.removeAllListeners(requestId)
+          this.msgEvents.removeAllListeners(String(requestId))
           callback(error, message)
         }, Number(Config.NM.TIMEOUT), true, 'Timeout awaiting response (10s)', callback
       )
       this.msgTimeouts.set(requestId, timeout) // Add to timeout list
-      this.msgEvents.on(requestId, (data) => {
+      this.msgEvents.on(String(requestId), (data) => {
         // Cancel timeout
         const timeoutToCancel = this.msgTimeouts.get(requestId)
         clearTimeout(timeoutToCancel)
         this.msgTimeouts.delete(requestId)
         // Remove listener
-        this.msgEvents.removeAllListeners(requestId)
+        this.msgEvents.removeAllListeners(String(requestId))
         // Return response
         callback(false, data)
       })
@@ -137,9 +137,8 @@ export class XMPP {
     })
   }
 
-  private async respondStanza (destinationOid: string, jid: string, requestId: string, body: string) {
-        const payload: XMPPMessage = { messageType: 1, requestId, requestOperation: 1, sourceAgid: 'dummy', sourceOid: this.oid, destinationOid, requestBody: body, isRequest: 0, parameters: {}, attributes: {} }
-    
+  private async respondStanza (destinationOid: string, jid: string, requestId: number, requestOperation: number, body: string) {
+        const payload: XMPPMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, requestBody: null, responseBody: body, parameters: {}, attributes: {} }
         const message = xml(
           'message',
           { type: 'chat', to: jid },
@@ -147,6 +146,16 @@ export class XMPP {
         )
         await this.client.send(message)
   }
+
+  // private async respondStanzaWithError (destinationOid: string, jid: string, requestId: number, requestOperation: number, body: string) {
+  //   const payload: XMPPMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, requestBody: null, responseBody: body, parameters: {}, attributes: {} }
+  //   const message = xml(
+  //     'error',
+  //     { type: 'chat', to: jid },
+  //     xml('error', {}, JSON.stringify(payload)),
+  //   )
+  //   await this.client.send(message)
+  // }
 
   // Event handlers
 
@@ -181,22 +190,43 @@ export class XMPP {
             logger.error('Tampering attempt sourceOid: ' + jid + ' differs from real origin ' + from + '!!')
             return
           }
-          if (body.isRequest === 1) {
+          if (body.messageType === 1) {
             // If it is a request, respond to it with the same requestId
             logger.debug(this.oid + ' receiving message request...')
-            await this.respondStanza(body.sourceOid, from, body.requestId, 'Custom response')
-          } else {
+            // USE handleRequest to do sth based on requestOperation
+            await this.respondStanza(body.sourceOid, from, body.requestId, body.requestOperation, 'Custom response')
+          } else if (body.messageType === 2) {
             // If it is a response, emit event with requestId to close the HTTP connection
             logger.debug(this.oid + ' receiving message response...')
-            this.msgEvents.emit(body.requestId, body.requestBody)
+            this.msgEvents.emit(String(body.requestId), body.responseBody)
+          } else if (body.messageType === 3) {
+            // Event --> @TBD check if ACK required, if no ACK you dont need to respond
+          } else {
+            // If it is a response, emit event with requestId to close the HTTP connection
+            logger.error('Unknown XMPP message type received...')
+            throw new MyError('Unknown XMPP message type received...', HttpStatusCode.BAD_REQUEST)
           }
       } else {
           logger.debug('Gateway received unknown message type: ' + type)
       }
     } else {
+      // I.e. presence, ...
       // logger.debug('Stanza received: Not message type')
       // logger.debug(stanza.toString())
     }  
+  }
+
+  private handleRequest (key: RequestOperation, options: Options) {
+    switch (key) {
+      case RequestOperation.GETPROPERTYVALUE:
+        // Retrieve value and return
+        break
+      case RequestOperation.SUBSCRIBETOEVENTCHANNEL:
+          // Retrieve value and return
+          break
+      default:
+        break
+    }
   }
 
   private onOnline () {

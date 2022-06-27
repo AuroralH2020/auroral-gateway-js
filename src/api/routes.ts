@@ -10,7 +10,7 @@ import { Router } from 'express'
 // Middlewares
 import { basicAuth } from './guard'
 // Controllers
-import { nm_ctrl, cs_ctrl } from './controllers' 
+import { nm_ctrl, cs_ctrl } from './controllers'
 
 const ApiRouter = Router()
 
@@ -22,11 +22,11 @@ ApiRouter
 
 // RESOURCE CONSUMPTION
 .get('/objects/:oid/properties/:pid', cs_ctrl.getProperty) // getProperty
-.put('/objects/:oid/properties/:pid', cs_ctrl.sendBody) // putProperty
+.put('/objects/:oid/properties/:pid', cs_ctrl.putProperty) // putProperty
 
 // CONSUMPTION - EVENTS
 .get('/objects/:oid/events', nm_ctrl.dummy) // getObjectEventChannels
-.post('/events/:eid', nm_ctrl.dummy) // activateEventChannel
+.post('/events/:eid', cs_ctrl.activateEventChannel) // activateEventChannel
 .put('/events/:eid', nm_ctrl.dummy) // publishEvent
 .delete('/events/:eid', nm_ctrl.dummy) // deactivateEventChannel
 .get('/objects/:oid/events/:eid', nm_ctrl.dummy) // statusRemoteEventChannel
@@ -61,9 +61,6 @@ ApiRouter
 // SECURITY
 .get('/security/privacy', nm_ctrl.getAgentPrivacy) // getItemsPrivacy
 .get('/security/contracts/:cid', nm_ctrl.getContractedItemsByCid) // getContracts
-
-// HEALTHCHECK
-.get('/objects/login', nm_ctrl.dummy) 
 
 // UNUSED
 // .get('/objects/:oid/properties', ctrl.dummy)
