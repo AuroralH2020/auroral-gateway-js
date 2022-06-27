@@ -2,6 +2,7 @@
  * Interface to XMPP engine
  */
 import { logger, MyError, HttpStatusCode } from '../utils'
+import { RequestOperation, MessageType } from '../types/xmpp-types'
 import { XMPP } from './xmpp.class'
 
 const clients = new Map<string, XMPP>()
@@ -12,10 +13,13 @@ const clients = new Map<string, XMPP>()
  * @param password 
  */
 export const initialize = function (oid: string, password: string) {
-    clients.set(
-        oid,
-        new XMPP(oid, password)
-    )
+    const xmpp = clients.get(oid)
+    if (!xmpp) {
+        clients.set(
+            oid,
+            new XMPP(oid, password)
+        )
+    }
 }
 
 /**
@@ -93,11 +97,11 @@ export const reloadRoster = async function (oid: string) {
  * @param message 
  * @returns 
  */
-export const sendMessage = function (oid: string, destination: string, message: string | null): Promise<{error: boolean, message: string}> {
+export const sendMessage = function (oid: string, destination: string, message: string | null, requestOperation: RequestOperation, messageType: MessageType): Promise<{error: boolean, message: string}> {
     return new Promise((resolve, reject) => {
         const xmpp = clients.get(oid)
         if (xmpp) {
-                xmpp.sendStanza(destination, message, (error, message) => {
+                xmpp.sendStanza(destination, message, requestOperation, messageType, (error, message) => {
                     resolve({ error, message })
                 })
         } else {
