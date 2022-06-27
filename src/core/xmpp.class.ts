@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { XMPPMessage, RosterItem, RequestOperation, MessageType, Options } from '../types/xmpp-types'
 import { HttpStatusCode, logger, errorHandler, MyError  } from '../utils'
 import { Config  } from '../config'
+import { EventHandler } from './event.class'
 
 export class XMPP {
   
@@ -15,6 +16,7 @@ export class XMPP {
   private rosterReloadTimer: NodeJS.Timer | undefined = undefined
   private msgTimeouts: Map<number, NodeJS.Timeout> = new Map<number,  NodeJS.Timeout>() // Timers to timeout requests
   private msgEvents: EventEmmiter = new EventEmmiter() // Handles events inside this class
+  private eventChannels: Map<string, EventHandler> = new Map<string, EventHandler>()
   public client
 
   public constructor (oid: string, password: string) {
@@ -124,6 +126,44 @@ export class XMPP {
         this.rosterItemsOid.set(rosterItems[i].attrs.name, rosterItems[i].attrs)
     }
   }
+
+  public addEventChannel (eid: string) {
+    if (this.eventChannels.has(eid)) {
+      logger.info('Event channel already exists for oid ' + this.oid + ' and eid ' + eid)
+    } else {
+      logger.info('Creating event channel ' + this.oid + ':' + eid)
+      this.eventChannels.set(eid, new EventHandler(this.oid, eid))
+    }
+  }
+
+  public removeEventChannel (eid: string) {
+    if (this.eventChannels.has(eid)) {
+      logger.info('Removing event channel with oid ' + this.oid + ' and eid ' + eid)
+      this.eventChannels.delete(eid)
+    } else {
+      logger.warn('Event channel ' + this.oid + ':' + eid + ' does not exist')
+      throw new MyError('Event channel does not exist', HttpStatusCode.NOT_FOUND)
+    }
+  }
+
+  /**
+   * Get one event channel handler class specified by eid
+   */
+  public getEventChannel (eid: string) {
+      const eventHandler = this.eventChannels.get(eid)
+      if (eventHandler) {
+        return eventHandler
+      } else {
+        throw new MyError('Event channel ' + this.oid + ':' + eid + ' does not exist')
+      }
+  }
+
+  /**
+   * Get all event channels list or only one class specified by eid
+   */
+     public getAllEventChannels () {
+      return Array.from(this.eventChannels.values())
+    }
 
   // Private methods
 

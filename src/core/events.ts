@@ -1,10 +1,8 @@
 import path from 'path'
 import fs from 'fs'
 import { HttpStatusCode , logger , MyError } from '../utils'
-import { EventHandler } from './event.class'
 import { Config } from '../config'
-
-const eventHandlers: Map<string, EventHandler> = new Map<string, EventHandler>()
+import { clients } from './xmpp'
 
 /**
  * Creates event channel for the given oid + eid
@@ -13,11 +11,11 @@ const eventHandlers: Map<string, EventHandler> = new Map<string, EventHandler>()
  * @param eid - event id
  */
 export function createEventChannel(oid: string, eid: string): void {
-    if (!eventHandlers.has(oid + eid)) {
-        logger.debug('Creating event channel ' + oid + ':' + eid)
-        eventHandlers.set(oid + eid, new EventHandler(oid, eid))
+    const xmppClient = clients.get(oid)
+    if (xmppClient) {
+        xmppClient.addEventChannel(eid)
     } else {
-        logger.warn('Event channel already exists for oid ' + oid + ' and eid ' + eid)
+        throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
     }
 }
 
@@ -28,11 +26,11 @@ export function createEventChannel(oid: string, eid: string): void {
  * @param eid - event id
  */
 export function removeEventChannel(oid: string, eid: string): void {
-    if (eventHandlers.has(oid + eid)) {
-        logger.debug('Removing event channel ' + oid + ':' + eid)
-        eventHandlers.delete(oid + eid)
+    const xmppClient = clients.get(oid)
+    if (xmppClient) {
+        xmppClient.removeEventChannel(eid)
     } else {
-        logger.warn('Event channel does not exist for oid ' + oid + ' and eid ' + eid)
+        throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
     }
 }
 
@@ -44,12 +42,13 @@ export function removeEventChannel(oid: string, eid: string): void {
  * @param subscriberOid - subscriber object id
  */
 export function addSubscriber(oid: string, eid: string, subscriberOid: string) {
-    if (eventHandlers.has(oid + eid)) {
-        const eventHandler = eventHandlers.get(oid + eid)!
-        logger.debug('Adding subscriber ' + subscriberOid + ' to event channel ' + oid + ':' + eid)
+    const xmppClient = clients.get(oid)
+    if (xmppClient) {
+        const eventHandler = xmppClient.getEventChannel(eid)
         eventHandler.addSubscriber(subscriberOid)
+        logger.info('Added subscriber ' + subscriberOid + ' to event channel ' + oid + ':' + eid)
     } else {
-        throw new MyError('Event channel not found', HttpStatusCode.NOT_FOUND)
+        throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
     }
 }
 /**
@@ -60,12 +59,13 @@ export function addSubscriber(oid: string, eid: string, subscriberOid: string) {
  * @param subscriberOid - subscriber object id
  */
 export function removeSubscriber(oid: string, eid: string, subscriberOid: string) {
-    if (eventHandlers.has(oid + eid)) {
-        const eventHandler = eventHandlers.get(oid + eid)!
-        logger.debug('Removing subscriber ' + subscriberOid + ' from event channel ' + oid + ':' + eid)
+    const xmppClient = clients.get(oid)
+    if (xmppClient) {
+        const eventHandler = xmppClient.getEventChannel(eid)
         eventHandler.removeSubscriber(subscriberOid)
+        logger.info('Removed subscriber ' + subscriberOid + ' from event channel ' + oid + ':' + eid)
     } else {
-        throw new MyError('Event channel not found', HttpStatusCode.NOT_FOUND)
+        throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
     }
 }
 
@@ -76,9 +76,10 @@ export function removeSubscriber(oid: string, eid: string, subscriberOid: string
  * @returns 
  */
  export function getSubscribers(oid: string, eid: string) {
-    if (eventHandlers.has(oid + eid)) {
-        const eventHandler = eventHandlers.get(oid + eid)!
-        return eventHandler.getSubscribers()
+    const xmppClient = clients.get(oid)
+    if (xmppClient) {
+        const eventHandler = xmppClient.getEventChannel(eid)
+        return eventHandler.subscribers
     } else {
         return []
     }
@@ -106,30 +107,33 @@ export function removeSubscriber(oid: string, eid: string, subscriberOid: string
  * Loads event channels settings from file
  */
 export function storeEventChannels() {
-    logger.debug('Storing event channels')
-    const eventChannels = Array.from(eventHandlers.values())
-    const eventChannelsJson = JSON.stringify(eventChannels)
-    try {
-        fs.writeFileSync(path.join(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)), eventChannelsJson)
-    } catch (err) {
-        logger.error('Error storing event channels: ' + err)
-    }
+    // logger.debug('Storing event channels')
+    // const oids = Array.from(clients.keys())
+    // const eventChannels = []
+    // for ()
+    // Array.from(eventHandlers.values())
+    // const eventChannelsJson = JSON.stringify(eventChannels)
+    // try {
+    //     fs.writeFileSync(path.join(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)), eventChannelsJson)
+    // } catch (err) {
+    //     logger.error('Error storing event channels: ' + err)
+    // }
 }
 
 /**
  * Store event channels settings to file
  */
 export function loadEventChannels() {
-    logger.debug('Loading event channels')
-    try {
-        const eventChannelsJson = fs.readFileSync(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)).toString()
-        if (eventChannelsJson) {
-            const eventChannels = JSON.parse(eventChannelsJson)
-            eventChannels.forEach((eventChannel: EventHandler) => {
-                eventHandlers.set(eventChannel.oid + eventChannel.eid, eventChannel)
-            })
-        }
-    } catch (error) {
-        logger.error('Error loading event channels: ' + error)
-    }
+    // logger.debug('Loading event channels')
+    // try {
+    //     const eventChannelsJson = fs.readFileSync(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)).toString()
+    //     if (eventChannelsJson) {
+    //         const eventChannels = JSON.parse(eventChannelsJson)
+    //         eventChannels.forEach((eventChannel: EventHandler) => {
+    //             eventHandlers.set(eventChannel.oid + eventChannel.eid, eventChannel)
+    //         })
+    //     }
+    // } catch (error) {
+    //     logger.error('Error loading event channels: ' + error)
+    // }
 }

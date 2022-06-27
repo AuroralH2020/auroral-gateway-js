@@ -99,7 +99,6 @@ export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) =
     const { oid, password } = res.locals
     const { eid } = req.params
     try {
-        // Call event module and add new channel EID
         createEventChannel(oid, eid)
         return responseBuilder(HttpStatusCode.OK, res, null)
     } catch (err: unknown) {
@@ -115,7 +114,6 @@ export const dectivateEventChannel: DectivateEventChannelCtrl = async (req, res)
     const { oid, password } = res.locals
     const { eid } = req.params
     try {
-        // Call event module and remove channel EID
         removeEventChannel(oid, eid)
         return responseBuilder(HttpStatusCode.OK, res, null)
     } catch (err: unknown) {

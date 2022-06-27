@@ -5,7 +5,7 @@ import { logger, MyError, HttpStatusCode } from '../utils'
 import { RequestOperation, MessageType } from '../types/xmpp-types'
 import { XMPP } from './xmpp.class'
 
-const clients = new Map<string, XMPP>()
+export const clients = new Map<string, XMPP>()
 
 /**
  * Generator of XMPP clients
