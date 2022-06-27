@@ -25,17 +25,13 @@ ApiRouter
 .put('/objects/:oid/properties/:pid', cs_ctrl.putProperty) // putProperty
 
 // CONSUMPTION - EVENTS
-.get('/objects/:oid/events', nm_ctrl.dummy) // getObjectEventChannels
-<<<<<<< HEAD
-.post('/events/:eid', nm_ctrl.activateEventChannel) // activateEventChannel
-=======
+.get('/objects/:oid/events', nm_ctrl.dummy) // getObjectEventChannels 
 .post('/events/:eid', cs_ctrl.activateEventChannel) // activateEventChannel
->>>>>>> 78f4f29353c607d2d745b7ff011ec0ae6c08b796
-.put('/events/:eid', nm_ctrl.dummy) // publishEvent
-.delete('/events/:eid', nm_ctrl.dummy) // deactivateEventChannel
+.put('/events/:eid', cs_ctrl.publishEventToChannel) // publishEvent
+.delete('/events/:eid', cs_ctrl.dectivateEventChannel) // deactivateEventChannel
 .get('/objects/:oid/events/:eid', nm_ctrl.dummy) // statusRemoteEventChannel
-.post('/objects/:oid/events/:eid', nm_ctrl.dummy) // subscribeRemoteEventChannel
-.delete('/objects/:oid/events/:eid', nm_ctrl.dummy) // unsubscribeRemoteEventChannel
+.post('/objects/:oid/events/:eid', cs_ctrl.subscribeToEventChannel) // subscribeRemoteEventChannel
+.delete('/objects/:oid/events/:eid', cs_ctrl.unsubscribeFromEventChannel) // unsubscribeRemoteEventChannel
 
 // CONSUMPTION - ACTIONS
 .get('/objects/:oid/actions', nm_ctrl.dummy)

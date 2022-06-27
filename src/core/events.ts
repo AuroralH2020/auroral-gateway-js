@@ -2,7 +2,6 @@ import path from 'path'
 import fs from 'fs'
 import { HttpStatusCode , logger , MyError } from '../utils'
 import { EventHandler } from './event.class'
-import { sendMessage } from './xmpp'
 import { Config } from '../config'
 
 const eventHandlers: Map<string, EventHandler> = new Map<string, EventHandler>()
@@ -71,23 +70,38 @@ export function removeSubscriber(oid: string, eid: string, subscriberOid: string
 }
 
 /**
- * Send event to all subscribers of the event channel for the given oid + eid
+ *  Returns array of subscribers for the given oid + eid
  * @param oid - object id
  * @param eid - event id
- * @param message - message to be sent to subscribers
+ * @returns 
  */
-export async function sendEvent(oid: string, eid: string, message: string) {
+ export function getSubscribers(oid: string, eid: string) {
     if (eventHandlers.has(oid + eid)) {
         const eventHandler = eventHandlers.get(oid + eid)!
-        logger.debug('Sending event ' + message + ' to event channel ' + oid + ':' + eid)
-        for (const subscriberOid of eventHandler.getSubscribers()) {
-            logger.debug('TODO: Sending event ' + message + ' to subscriber ' + subscriberOid)
-            // TODO: Send event to subscribers
-        }
+        return eventHandler.getSubscribers()
     } else {
-        logger.warn('Event channel not found')
+        return []
     }
 }
+
+// /**
+//  * Send event to all subscribers of the event channel for the given oid + eid
+//  * @param oid - object id
+//  * @param eid - event id
+//  * @param message - message to be sent to subscribers
+//  */
+// export async function sendEvent(oid: string, eid: string, bodyMessage: string) {
+//     if (eventHandlers.has(oid + eid)) {
+//         const eventHandler = eventHandlers.get(oid + eid)!
+//         logger.debug('Sending event  to event channel ' + oid + ':' + eid)
+//         for (const subscriberOid of eventHandler.getSubscribers()) {
+//             logger.debug('TODO: Sending event to subscriber ' + subscriberOid)
+//             // TODO: Send event to subscribers
+//         }
+//     } else {
+//         logger.warn('Event channel not found')
+//     }
+// }
 /**
  * Loads event channels settings from file
  */
@@ -95,7 +109,6 @@ export function storeEventChannels() {
     logger.debug('Storing event channels')
     const eventChannels = Array.from(eventHandlers.values())
     const eventChannelsJson = JSON.stringify(eventChannels)
-    logger.debug('Storing event channels: ' + eventChannelsJson)
     try {
         fs.writeFileSync(path.join(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)), eventChannelsJson)
     } catch (err) {

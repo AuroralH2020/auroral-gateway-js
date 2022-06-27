@@ -204,17 +204,3 @@ export const getContractedItemsByCid: getContractedItemsByCidCtrl = async (req, 
         }
 }
 
-//TEST
-
-type ActivateEventChannelCtrl = expressTypes.Controller<{}, {eid: string, oid: string }, {}, null, {}>
-
-export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) => {
-        try {
-                createEventChannel(req.body.oid, req.body.eid)
-                return responseBuilder(HttpStatusCode.OK, res, null, null)
-	} catch (err) {
-                const error = errorHandler(err)
-                logger.error(error.message)
-                return responseBuilder(error.status, res, error.message)
-	}
-}

@@ -8,6 +8,7 @@ import { responseBuilder } from '../../utils/response-builder'
 // Imports
 import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage } from '../../core/xmpp'
 import { RequestOperation, MessageType } from '../../types/xmpp-types'
+import { createEventChannel, getSubscribers, removeEventChannel } from '../../core/events'
 
 // Controllers
 
@@ -92,14 +93,91 @@ export const putProperty: PutPropertyCtrl = async (req, res) => {
     }
 }
 
-type ActivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, string, { oid: string, password: string }>
+type ActivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, {}, { oid: string, password: string }>
 
 export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) => {
     const { oid, password } = res.locals
     const { eid } = req.params
     try {
         // Call event module and add new channel EID
-        return responseBuilder(HttpStatusCode.CREATED, res, null, 'Channel with EID: ' + eid + 'successfully created')
+        createEventChannel(oid, eid)
+        return responseBuilder(HttpStatusCode.OK, res, null)
+    } catch (err: unknown) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+    }
+}
+
+type DectivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, {}, { oid: string, password: string }>
+
+export const dectivateEventChannel: DectivateEventChannelCtrl = async (req, res) => {
+    const { oid, password } = res.locals
+    const { eid } = req.params
+    try {
+        // Call event module and remove channel EID
+        removeEventChannel(oid, eid)
+        return responseBuilder(HttpStatusCode.OK, res, null)
+    } catch (err: unknown) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+    }
+}
+
+type PublishEventToChannelCtrl = expressTypes.Controller<{ eid: string }, string, {}, string, { oid: string, password: string }>
+
+export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res) => {
+    const { oid, password } = res.locals
+    const { eid } = req.params
+    const message = req.body
+    try {
+        // retrieve subscribers and send message to each one
+        for (const subscriber of getSubscribers(oid, eid)) {
+            sendMessage(oid, subscriber, message, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT) // TBD: RequestOperation type ??
+        }
+        // TBD: Do we need to wait for responses?
+        return responseBuilder(HttpStatusCode.OK, res, null, 'Channel with EID: ' + eid + 'successfully removed')
+    } catch (err: unknown) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+    }
+}
+
+type SubscribeToEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, {}, { oid: string, password: string }>
+
+export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, res) => {
+    const { oid, password } = res.locals
+    const { eid } = req.params
+    try {
+        // TBD: Do we need to check if is local or remote?
+        const response = await sendMessage(oid, eid, null, RequestOperation.SUBSCRIBETOEVENTCHANNEL, MessageType.REQUEST)
+        if (response.error) {
+            // TBD: Parse error code from response
+            return responseBuilder(HttpStatusCode.BAD_REQUEST, res, response.message)
+        }
+        return responseBuilder(HttpStatusCode.OK, res, null)
+    } catch (err: unknown) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+    }
+}
+
+type UnsubscribeFromEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, {}, { oid: string, password: string }>
+
+export const unsubscribeFromEventChannel: UnsubscribeFromEventChannelCtrl = async (req, res) => {
+    const { oid, password } = res.locals
+    const { eid } = req.params
+    try {
+       // TBD: Do we need to check if is local or remote?
+       const response = await sendMessage(oid, eid, null, RequestOperation.UNSUBSCRIBEFROMEVENTCHANNEL, MessageType.REQUEST)
+       if (response.error) {
+           // TBD: Parse error code from response
+           return responseBuilder(HttpStatusCode.BAD_REQUEST, res, response.message)
+       }
+       return responseBuilder(HttpStatusCode.OK, res, null)
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)
