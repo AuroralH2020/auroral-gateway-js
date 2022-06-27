@@ -56,7 +56,7 @@ export const nm = {
      * @returns {error?: string, message: string}
      */
     getCounters: async function(): Promise<GenericResponse<string>> {
-        const msg = await request('counters', 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('counters', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -65,7 +65,7 @@ export const nm = {
      * @returns jsonType
      */
     postCounters: async function(records: JsonType): Promise<GenericResponse<void>> {
-        const msg = await request('counters', 'POST', records, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('counters', 'POST', records, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -74,7 +74,7 @@ export const nm = {
      * @returns jsonType
      */
     getItemRoster: async function(oid: string): Promise<GenericResponse<JsonType>> {
-        const msg = await request('items/' + oid, 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('items/' + oid, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -84,7 +84,7 @@ export const nm = {
      * @returns jsonType
      */
     registerItems: async function(agid: string, items: JsonType[]): Promise<GenericResponse<JsonType>> {
-        const msg = await request('items/register', 'POST', { agid, items }, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('items/register', 'POST', { agid, items }, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -94,7 +94,7 @@ export const nm = {
      * @returns jsonType
      */
     removeItems: async function(agid: string, oids: string[]): Promise<GenericResponse<JsonType>> {
-        const msg = await request('items/remove', 'POST', { agid, oids }, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('items/remove', 'POST', { agid, oids }, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -104,7 +104,7 @@ export const nm = {
      * @returns jsonType
      */
     modifyItems: async function(agid: string, items: JsonType[]): Promise<GenericResponse<JsonType>> {
-        const msg = await request('items/modify', 'PUT', { agid, items }, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('items/modify', 'PUT', { agid, items }, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -113,7 +113,7 @@ export const nm = {
      * @returns jsonType
      */
     deleteAgent: async function(agid: string): Promise<GenericResponse<JsonType>> {
-        const msg = await request('agent/' + agid, 'DELETE', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('agent/' + agid, 'DELETE', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -122,7 +122,7 @@ export const nm = {
      * @returns jsonType
      */
     getAgentItems: async function(agid: string): Promise<GenericResponse<JsonType>> {
-            const msg = await request(`agent/${agid}/items`, 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+            const msg = await request(`agent/${agid}/items`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
             return msg 
     },
     /**
@@ -130,7 +130,7 @@ export const nm = {
      * @returns jsonType
      */
     getAgentPrivacy: async function(): Promise<GenericResponse<JsonType>> {
-        const msg = await request('agent/privacy', 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('agent/privacy', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -139,7 +139,7 @@ export const nm = {
      * @returns jsonType
      */
     getCidFromReqid: async function(reqid: string): Promise<GenericResponse<JsonType>> {
-        const msg = await request(`agent/cid/${reqid}`, 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request(`agent/cid/${reqid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -147,7 +147,7 @@ export const nm = {
      * @returns jsonType
      */
     getPartners: async function(): Promise<GenericResponse<JsonType>> {
-        const msg = await request('agent/partners', 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('agent/partners', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -156,7 +156,7 @@ export const nm = {
      * @returns jsonType
      */
     getPartner: async function(cid: string): Promise<GenericResponse<JsonType>> {
-        const msg = await request(`agent/partner/${cid}`, 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request(`agent/partner/${cid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -165,7 +165,7 @@ export const nm = {
      * @returns jsonType
      */
     getContractedItemsByCid: async function(cid: string): Promise<GenericResponse<JsonType>> {
-        const msg = await request(`agent/contract/items/${cid}`, 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request(`agent/contract/items/${cid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     // DISCOVERY
@@ -174,7 +174,7 @@ export const nm = {
      * @returns jsonType
      */
     getCommunities: async function(): Promise<GenericResponse<JsonType>> {
-        const msg = await request('agent/communities', 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('agent/communities', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -182,7 +182,7 @@ export const nm = {
      * @returns jsonType
      */
     getNodesInMyOrganisation: async function(): Promise<GenericResponse<JsonType>> {
-        const msg = await request('discovery/nodes/organisation', 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('discovery/nodes/organisation', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -191,7 +191,7 @@ export const nm = {
      * @returns jsonType
      */
     getNodesInOrganisation: async function(cid: string): Promise<GenericResponse<JsonType>> {
-        const msg = await request(`discovery/nodes/organisation/${cid}`, 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request(`discovery/nodes/organisation/${cid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -200,7 +200,7 @@ export const nm = {
      * @returns jsonType
      */
     getNodesInCommunity: async function(commId: string): Promise<GenericResponse<JsonType>> {
-        const msg = await request(`discovery/nodes/comunity/${commId}`, 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request(`discovery/nodes/comMunity/${commId}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -208,7 +208,7 @@ export const nm = {
      * @returns jsonType
      */
     getItemsInMyOrganisation: async function(): Promise<GenericResponse<JsonType>> {
-        const msg = await request('discovery/items/organisation', 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request('discovery/items/organisation', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     },
     /**
@@ -217,7 +217,7 @@ export const nm = {
      * @returns jsonType
      */
     getItemsInContract: async function(ctid: string): Promise<GenericResponse<JsonType>> {
-        const msg = await request(`discovery/items/contract/${ctid}`, 'GET', undefined, { ...ApiHeader, 'X-ACCESS-TOKEN': 'Bearer ' + Token.token })
+        const msg = await request(`discovery/items/contract/${ctid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         return msg
     }
 
