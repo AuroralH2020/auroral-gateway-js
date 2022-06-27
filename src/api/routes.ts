@@ -26,7 +26,7 @@ ApiRouter
 
 // CONSUMPTION - EVENTS
 .get('/objects/:oid/events', nm_ctrl.dummy) // getObjectEventChannels
-.post('/events/:eid', nm_ctrl.dummy) // activateEventChannel
+.post('/events/:eid', nm_ctrl.activateEventChannel) // activateEventChannel
 .put('/events/:eid', nm_ctrl.dummy) // publishEvent
 .delete('/events/:eid', nm_ctrl.dummy) // deactivateEventChannel
 .get('/objects/:oid/events/:eid', nm_ctrl.dummy) // statusRemoteEventChannel

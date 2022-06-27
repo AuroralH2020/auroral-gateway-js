@@ -6,6 +6,7 @@ import { Config } from './config'
 import { Token } from './core/security'
 import { nm } from './core/nm-connector'
 import { logger, errorHandler as eH } from './utils'
+import { loadEventChannels, storeEventChannels } from './core/events'
 
 /**
  * Error Handler. Provides full stack - only in dev
@@ -26,6 +27,7 @@ async function bootstrap () {
     await Token.start()
     logger.info(await nm.handshake())
     await initialize(Config.GATEWAY.ID, Config.GATEWAY.PASSWORD)
+    loadEventChannels()
     await startXMPPClient(Config.GATEWAY.ID)
     logger.info('##############################################')
     logger.info('##############################################')
@@ -62,6 +64,7 @@ const server = startServer()
 
 // gracefully shut down server
 function shutdown() {
+  storeEventChannels()
   stopAllXMPPClients(() => {
     server.stop((err) => {
       if (err) {

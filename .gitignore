@@ -4,3 +4,4 @@ dist/
 logs/
 node_modules/
 keystore/gateway*
+events.json

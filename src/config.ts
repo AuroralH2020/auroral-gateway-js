@@ -33,5 +33,8 @@ export const Config = {
 		DOMAIN: process.env.XMPP_DOMAIN!,
 		RESOURCE: process.env.XMPP_RESOURCE!,
 		ROSTER_REFRESH: process.env.ROSTER_REFRESH || 300000 // Defaults 5 min
+	},
+	EVENTS: {
+		SETTINGS_FILE: process.env.EVENT_SETTINGS_FILE || 'events.json',
 	}
 }

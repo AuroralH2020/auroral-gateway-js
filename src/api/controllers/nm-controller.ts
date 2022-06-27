@@ -9,6 +9,7 @@ import { responseBuilder } from '../../utils/response-builder'
 import {  GtwRegistrationResponse, GtwUpdateResponse } from '../../types/gateway-types'
 import { nm } from '../../core/nm-connector'
 import { JsonType } from '../../types/misc-types'
+import { createEventChannel } from '../../core/events'
 
 // Controllers
 
@@ -201,4 +202,19 @@ export const getContractedItemsByCid: getContractedItemsByCidCtrl = async (req, 
                 logger.error(error.message)
                 return responseBuilder(error.status, res, error.message)
         }
+}
+
+//TEST
+
+type ActivateEventChannelCtrl = expressTypes.Controller<{}, {eid: string, oid: string }, {}, null, {}>
+
+export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) => {
+        try {
+                createEventChannel(req.body.oid, req.body.eid)
+                return responseBuilder(HttpStatusCode.OK, res, null, null)
+	} catch (err) {
+                const error = errorHandler(err)
+                logger.error(error.message)
+                return responseBuilder(error.status, res, error.message)
+	}
 }
