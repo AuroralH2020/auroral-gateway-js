@@ -24,7 +24,7 @@ export function responseBuilder<T>(statusCode: HttpStatusCode, res: ApiResponse<
         return res.status(statusCode).json({
             error: true,
             statusCode: statusCode,
-            statusCodeReason: 'Error', // TBD
+            statusCodeReason: error,
             contentType: 'application/json',
             message
         })

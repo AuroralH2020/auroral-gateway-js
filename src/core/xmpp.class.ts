@@ -1,31 +1,9 @@
 import { client, xml } from '@xmpp/client'
 import EventEmmiter from 'node:events'
 import crypto from 'crypto'
-import { errorHandler } from '../utils/error-handler'
-import { logger } from '../utils'
+import { XMPPMessage, RosterItem } from '../types/xmpp-types'
+import { HttpStatusCode, logger, errorHandler, MyError  } from '../utils'
 import { Config  } from '../config'
-import { JsonType } from '../types/misc-types'
-
-// Class custom types
-
-type RosterItem = {
-  jid: string,
-  name: string,
-  subscription: string
-}
-
-type Message = {
-  messageType: number,
-  requestOperation: number, // Needed??
-  isRequest: number, // 1 = isReq, 0 = isNotReq
-  requestId: string, // ID of the message
-  sourceAgid: string,
-  sourceOid: string,
-  destinationOid: string,
-  requestBody: string | null,
-  attributes: JsonType,
-  parameters: JsonType
-}
 
 export class XMPP {
   
@@ -85,14 +63,14 @@ export class XMPP {
       const jid = this.rosterItemsOid.get(destinationOid)?.jid
       if (!jid) {
         logger.warn('Destination ' + destinationOid + ' is not in the roster of ' + this.oid)
-        return
+        throw new MyError('Destination OID not found in roster, aborting message', HttpStatusCode.NOT_FOUND)
       }
 
       // Add random ID to the request
       const requestId = crypto.randomUUID()
 
       // Create message payload
-      const payload: Message = { messageType: 1, requestId, requestOperation: 1, sourceAgid: 'dummy', sourceOid: this.oid, destinationOid, requestBody: body, isRequest: 1, parameters: {}, attributes: {} }
+      const payload: XMPPMessage = { messageType: 1, requestId, requestOperation: 1, sourceAgid: 'dummy', sourceOid: this.oid, destinationOid, requestBody: body, isRequest: 1, parameters: {}, attributes: {} }
   
       // Build XML and send message
       const message = xml(
@@ -125,10 +103,12 @@ export class XMPP {
 
   // Return object roster
   public async getRoster () {
+    const roster: string[] = []
     this.rosterItemsOid.forEach(it => {
-      logger.debug(it)
+      roster.push(it.name)
+      // logger.debug(it)
     })
-    return this.rosterItemsOid
+    return roster
   }
 
   // @TBD improve this function by calculating the difference and adding/removing items based on that
@@ -158,7 +138,7 @@ export class XMPP {
   }
 
   private async respondStanza (destinationOid: string, jid: string, requestId: string, body: string) {
-        const payload: Message = { messageType: 1, requestId, requestOperation: 1, sourceAgid: 'dummy', sourceOid: this.oid, destinationOid, requestBody: body, isRequest: 0, parameters: {}, attributes: {} }
+        const payload: XMPPMessage = { messageType: 1, requestId, requestOperation: 1, sourceAgid: 'dummy', sourceOid: this.oid, destinationOid, requestBody: body, isRequest: 0, parameters: {}, attributes: {} }
     
         const message = xml(
           'message',
@@ -189,7 +169,7 @@ export class XMPP {
           logger.debug(stanza.getChild('body').text())
           logger.debug(stanza.getChild('error').text())
       } else if (type === 'chat') {
-          const body: Message = JSON.parse(stanza.getChild('body').text())
+          const body: XMPPMessage = JSON.parse(stanza.getChild('body').text())
           const jid = this.rosterItemsOid.get(body.sourceOid)?.jid
           // Check if origin is in roster
           if (!jid) {

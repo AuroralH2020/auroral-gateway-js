@@ -10,11 +10,13 @@ import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage } 
 
 // Controllers
 
-type Ctrl = expressTypes.Controller<{ oid: string }, {}, {}, null, {}>
- 
+type Ctrl = expressTypes.Controller<{}, {}, {}, null, { oid: string, password: string }>
+type CtrlStringArray = expressTypes.Controller<{}, {}, {}, string[], { oid: string, password: string }>
+
 export const start: Ctrl = async (req, res) => {
-    const { oid } = req.params
+    const { oid, password } = res.locals
     try {
+        await initialize(oid, password)
         await startXMPPClient(oid)
         return responseBuilder(HttpStatusCode.OK, res, null, null)
 	} catch (err) {
@@ -25,9 +27,9 @@ export const start: Ctrl = async (req, res) => {
 }
 
 export const stop: Ctrl = async (req, res) => {
-    const { oid } = req.params
+    const { oid, password } = res.locals
     try {
-        await stopXMPPClients(oid, (err) => { })
+        await stopXMPPClients(oid)
         return responseBuilder(HttpStatusCode.OK, res, null, null)
 	} catch (err) {
         const error = errorHandler(err)
@@ -36,11 +38,11 @@ export const stop: Ctrl = async (req, res) => {
 	}
 }
 
-export const roster: Ctrl = async (req, res) => {
-    const { oid } = req.params
+export const roster: CtrlStringArray = async (req, res) => {
+    const { oid, password } = res.locals
     try {
-        await getRoster(oid)
-        return responseBuilder(HttpStatusCode.OK, res, null, null)
+        const roster = await getRoster(oid)
+        return responseBuilder(HttpStatusCode.OK, res, null, roster)
 	} catch (err) {
         const error = errorHandler(err)
         logger.error(error.message)
@@ -48,10 +50,10 @@ export const roster: Ctrl = async (req, res) => {
 	}
 }
 
-type InitCtrl = expressTypes.Controller<{}, { oid: string, password: string }, {}, null, {}>
+type InitCtrl = expressTypes.Controller<{}, {}, {}, null, { oid: string, password: string }>
 
 export const init: InitCtrl = async (req, res) => {
-    const { oid, password } = req.body
+    const { oid, password } = res.locals
     try {
         await initialize(oid, password)
         return responseBuilder(HttpStatusCode.OK, res, null, null)
@@ -62,10 +64,29 @@ export const init: InitCtrl = async (req, res) => {
 	}
 }
 
-type SendCtrl = expressTypes.Controller<{ oid: string }, { destination: string, message: string }, {}, string, {}>
+type getPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string}, {}, {}, string, { oid: string, password: string }>
 
-export const send: SendCtrl = async (req, res) => {
-    const { oid } = req.params
+export const getProperty: getPropertyCtrl = async (req, res) => {
+    const { oid, password } = res.locals
+    const params = req.params
+    try {
+        const response = await sendMessage(oid, params.oid, null)
+        if (response.error) {
+            return responseBuilder(HttpStatusCode.SERVICE_UNAVAILABLE, res, response.message)       
+        } else {
+            return responseBuilder(HttpStatusCode.OK, res, null, response.message)
+        }
+    } catch (err: unknown) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+    }
+}
+
+type PutProperty = expressTypes.Controller<{}, { destination: string, message: string }, {}, string, { oid: string, password: string }>
+
+export const sendBody: PutProperty = async (req, res) => {
+    const { oid, password } = res.locals
     const { destination, message } = req.body
     try {
         const response = await sendMessage(oid, destination, message)

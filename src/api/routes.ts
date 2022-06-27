@@ -7,25 +7,22 @@
  */
 // Express router
 import { Router } from 'express'
+// Middlewares
+import { basicAuth } from './guard'
 // Controllers
 import { nm_ctrl, cs_ctrl } from './controllers' 
 
 const ApiRouter = Router()
 
 ApiRouter
-.post('/initialize', cs_ctrl.init)
-.get('/start/:oid', cs_ctrl.start)
-.get('/roster/:oid', cs_ctrl.roster)
-.get('/stop/:oid', cs_ctrl.stop)
-.post('/message/:oid', cs_ctrl.send)
 
 // AUTHENTICATION
-.get('/objects/login', nm_ctrl.dummy) // login
-.get('/objects/logout', nm_ctrl.dummy) // logout
+.get('/objects/login', basicAuth(), cs_ctrl.start) // login
+.get('/objects/logout', basicAuth(), cs_ctrl.stop) // logout
 
 // RESOURCE CONSUMPTION
-.get('/objects/:oid/properties/:pid', nm_ctrl.dummy) // getProperty
-.put('/objects/:oid/properties/:pid', nm_ctrl.dummy) // putProperty
+.get('/objects/:oid/properties/:pid', cs_ctrl.getProperty) // getProperty
+.put('/objects/:oid/properties/:pid', cs_ctrl.sendBody) // putProperty
 
 // CONSUMPTION - EVENTS
 .get('/objects/:oid/events', nm_ctrl.dummy) // getObjectEventChannels
@@ -50,12 +47,12 @@ ApiRouter
 .post('/agents/:agid/objects/delete', nm_ctrl.removeRegistration) // removeRegistrations
 
 // DISCOVERY
-.get('/objects', nm_ctrl.dummy)  // discovery 
+.get('/objects', basicAuth(), cs_ctrl.roster)  // discovery gateway roster
 .get('/discovery/nodes/organisation', nm_ctrl.getNodesInMyOrganisation) // organisationNodes
 .get('/discovery/nodes/community/:commid', nm_ctrl.getNodesInCommunity) // communityNodes
 .get('/discovery/items/organisation', nm_ctrl.getItemsInMyOrganisation) // organisationItems
 .get('/discovery/items/contract/:ctid', nm_ctrl.getItemsInContract) // contractItems
-.post('/objects/:oid', nm_ctrl.dummy) // discoveryRemote
+.post('/objects/:oid', nm_ctrl.dummy) // discoveryRemote ????
 .get('/agents/cid/:reqid', nm_ctrl.getCidFromReqid) // getCid
 .get('/agents/partners', nm_ctrl.getPartners) // getPartners
 .get('/agents/communities/', nm_ctrl.getCommunities) // getCommunities

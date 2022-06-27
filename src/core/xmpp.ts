@@ -1,7 +1,7 @@
 /**
  * Interface to XMPP engine
  */
-import { logger } from '../utils'
+import { logger, MyError, HttpStatusCode } from '../utils'
 import { XMPP } from './xmpp.class'
 
 const clients = new Map<string, XMPP>()
@@ -27,7 +27,7 @@ export const startXMPPClient = async function (oid: string) {
     if (xmpp) {
         await xmpp.start()
     } else {
-        logger.warn('XMPP client not found')
+        throw new MyError('XMPP Client not found in pool', HttpStatusCode.NOT_FOUND)
     }
 }
 
@@ -36,11 +36,12 @@ export const startXMPPClient = async function (oid: string) {
  * @param oid 
  * @param callback 
  */
-export const stopXMPPClients = async function (oid: string, callback: (err?: string) => void) {
+export const stopXMPPClients = async function (oid: string) {
     const xmpp = clients.get(oid)
     if (xmpp) {
         await xmpp.stop()
-        callback()
+    } else {
+        throw new MyError('XMPP Client not found in pool', HttpStatusCode.NOT_FOUND)
     }
 }
 
@@ -63,12 +64,12 @@ export const stopAllXMPPClients = async function (callback: (err?: string) => vo
  * Get roster of one XMPP client
  * @param oid 
  */
-export const getRoster = async function (oid: string) {
+export const getRoster = async function (oid: string): Promise<string[]> {
     const xmpp = clients.get(oid)
     if (xmpp) {
-        await xmpp.getRoster()
+        return xmpp.getRoster()
     } else {
-        logger.warn('XMPP client not found')
+        throw new MyError('XMPP Client not found in pool', HttpStatusCode.NOT_FOUND)
     }
 }
 
@@ -81,7 +82,7 @@ export const reloadRoster = async function (oid: string) {
     if (xmpp) {
         await xmpp.reloadRoster()
     } else {
-        logger.warn('XMPP client not found')
+        throw new MyError('XMPP Client not found in pool', HttpStatusCode.NOT_FOUND)
     }
 }
 
@@ -92,7 +93,7 @@ export const reloadRoster = async function (oid: string) {
  * @param message 
  * @returns 
  */
-export const sendMessage = function (oid: string, destination: string, message: string): Promise<{error: boolean, message: string}> {
+export const sendMessage = function (oid: string, destination: string, message: string | null): Promise<{error: boolean, message: string}> {
     return new Promise((resolve, reject) => {
         const xmpp = clients.get(oid)
         if (xmpp) {
@@ -100,8 +101,7 @@ export const sendMessage = function (oid: string, destination: string, message: 
                     resolve({ error, message })
                 })
         } else {
-            logger.warn('XMPP client not found')
-            resolve({ error: true, message: 'OID not found on destination' })
+            throw new MyError('XMPP Client not found in pool', HttpStatusCode.NOT_FOUND)
         }
     })
 }

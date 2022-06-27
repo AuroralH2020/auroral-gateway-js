@@ -5,7 +5,7 @@
 
 import got, { Method, Headers, Response } from 'got'
 import { Config } from '../config'
-import { logger, errorHandler, HttpStatusCode } from '../utils'
+import { logger, errorHandler, HttpStatusCode, MyError } from '../utils'
 import { GenericResponse } from '../types/nm-types'
 import { Token } from './security'
 import { JsonType } from '../types/misc-types'
@@ -47,8 +47,8 @@ export const nm = {
             return msg
         } catch (err: unknown) {
             const error = errorHandler(err)
-            logger.error('Initial handshake failed...')
-            throw new Error(error.message)
+            logger.error('Initial handshake failed...', HttpStatusCode.UNAUTHORIZED)
+            throw new MyError(error.message)
         }
     },
     /**

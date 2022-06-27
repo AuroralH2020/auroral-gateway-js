@@ -19,9 +19,21 @@
      UNAUTHORIZED = 'Unauthorized',
      NOT_FOUND = 'Not found'
  }
+ export class MyError {
+    message: string
+    status: HttpStatusCode
+    stack?: string
+    constructor(message: string, status: HttpStatusCode = HttpStatusCode.INTERNAL_SERVER_ERROR, stack: string | undefined = undefined) {
+        this.message = message
+        this.status = status
+        this.stack = stack
+    }
+}
  
  export const errorHandler = (err: unknown): CustomError => {
-     if (err instanceof Error) {
+    if (err instanceof MyError) {
+        return err
+    } else if (err instanceof Error) {
          return {
             ...err, // Workaround for ErrnoException type (code, path, syscall, stack, ...)
             message: err.message,
