@@ -41,9 +41,20 @@ export type XMPPMessage = {
     parameters: JsonType
 }
 
+export type XMPPErrorMessage = {
+    messageType: MessageType,
+    requestOperation: RequestOperation,
+    requestId: number, // ID of the message
+    sourceAgid: string,
+    sourceOid: string,
+    destinationOid: string,
+    errorMessage: string,
+    statusCode: number
+}
+
 export interface Options {
     oid: string,
-    body?: string,
+    body?: any,
     eid: string,
     pid: string
   }

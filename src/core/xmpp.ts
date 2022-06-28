@@ -101,7 +101,7 @@ export const sendMessage = function (oid: string, destination: string, message: 
     return new Promise((resolve, reject) => {
         const xmpp = clients.get(oid)
         if (xmpp) {
-                xmpp.sendStanza(destination, message, requestOperation, messageType, (error, message) => {
+                xmpp.sendStanza(destination, message, requestOperation, messageType, {}, {}, (error, message) => {
                     resolve({ error, message })
                 })
         } else {

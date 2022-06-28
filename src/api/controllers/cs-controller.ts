@@ -8,7 +8,8 @@ import { responseBuilder } from '../../utils/response-builder'
 // Imports
 import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage } from '../../core/xmpp'
 import { RequestOperation, MessageType } from '../../types/xmpp-types'
-import { createEventChannel, getSubscribers, removeEventChannel } from '../../core/events'
+import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber } from '../../core/events'
+import { addSubscriberNetwork } from '../../core/networkMessages'
 
 // Controllers
 
@@ -123,19 +124,14 @@ export const dectivateEventChannel: DectivateEventChannelCtrl = async (req, res)
     }
 }
 
-type PublishEventToChannelCtrl = expressTypes.Controller<{ eid: string }, string, {}, string, { oid: string, password: string }>
+type GetEventChannelsCtrl = expressTypes.Controller<{ oid: string }, {}, {}, string[], { oid: string, password: string }>
 
-export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res) => {
+export const getEventChannels: GetEventChannelsCtrl = async (req, res) => {
     const { oid, password } = res.locals
-    const { eid } = req.params
-    const message = req.body
+    const params = req.params
     try {
-        // retrieve subscribers and send message to each one
-        for (const subscriber of getSubscribers(oid, eid)) {
-            sendMessage(oid, subscriber, message, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT) // TBD: RequestOperation type ??
-        }
-        // TBD: Do we need to wait for responses?
-        return responseBuilder(HttpStatusCode.OK, res, null, 'Channel with EID: ' + eid + 'successfully removed')
+        const eChannels = getEventChannelsNames(params.oid)
+        return responseBuilder(HttpStatusCode.OK, res, null, eChannels)
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)
@@ -143,9 +139,9 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
     }
 }
 
-type SubscribeToEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, {}, { oid: string, password: string }>
+type GetEventChannelStatusCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, {}, { oid: string, password: string }>
 
-export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, res) => {
+export const getRemoteEventChannelStatus: GetEventChannelStatusCtrl = async (req, res) => {
     const { oid, password } = res.locals
     const { eid } = req.params
     try {
@@ -156,6 +152,26 @@ export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, 
             return responseBuilder(HttpStatusCode.BAD_REQUEST, res, response.message)
         }
         return responseBuilder(HttpStatusCode.OK, res, null)
+    } catch (err: unknown) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+    }
+}
+
+type SubscribeToEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
+
+export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, res) => {
+    const { oid, password } = res.locals
+    const params = req.params
+    try {
+        const response = await addSubscriber(params.oid, params.eid, oid)
+        if (!response.success) {
+            const networkResponse = await addSubscriberNetwork(oid, params.eid, params.oid)
+            return responseBuilder(HttpStatusCode.OK, res, null, networkResponse)
+        } else {
+            return responseBuilder(HttpStatusCode.OK, res, null, 'OID successfully added to subscribers')
+        }
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)
@@ -176,6 +192,26 @@ export const unsubscribeFromEventChannel: UnsubscribeFromEventChannelCtrl = asyn
            return responseBuilder(HttpStatusCode.BAD_REQUEST, res, response.message)
        }
        return responseBuilder(HttpStatusCode.OK, res, null)
+    } catch (err: unknown) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+    }
+}
+
+type PublishEventToChannelCtrl = expressTypes.Controller<{ eid: string }, string, {}, string, { oid: string, password: string }>
+
+export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res) => {
+    const { oid, password } = res.locals
+    const { eid } = req.params
+    const message = req.body
+    try {
+        // retrieve subscribers and send message to each one
+        for (const subscriber of getSubscribers(oid, eid)) {
+            sendMessage(oid, subscriber, message, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT) // TBD: RequestOperation type ??
+        }
+        // TBD: Do we need to wait for responses?
+        return responseBuilder(HttpStatusCode.OK, res, null, 'Channel with EID: ' + eid + 'successfully removed')
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)

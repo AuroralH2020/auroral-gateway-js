@@ -25,11 +25,11 @@ ApiRouter
 .put('/objects/:oid/properties/:pid', cs_ctrl.putProperty) // putProperty
 
 // CONSUMPTION - EVENTS
-.get('/objects/:oid/events', nm_ctrl.dummy) // getObjectEventChannels 
+.get('/objects/:oid/events', cs_ctrl.getEventChannels) // getObjectEventChannels 
 .post('/events/:eid', cs_ctrl.activateEventChannel) // activateEventChannel
 .put('/events/:eid', cs_ctrl.publishEventToChannel) // publishEvent
 .delete('/events/:eid', cs_ctrl.dectivateEventChannel) // deactivateEventChannel
-.get('/objects/:oid/events/:eid', nm_ctrl.dummy) // statusRemoteEventChannel
+.get('/objects/:oid/events/:eid', cs_ctrl.getRemoteEventChannelStatus) // statusRemoteEventChannel
 .post('/objects/:oid/events/:eid', cs_ctrl.subscribeToEventChannel) // subscribeRemoteEventChannel
 .delete('/objects/:oid/events/:eid', cs_ctrl.unsubscribeFromEventChannel) // unsubscribeRemoteEventChannel
 
