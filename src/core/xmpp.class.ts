@@ -127,9 +127,11 @@ export class XMPP {
     }
   }
 
+  // Events
+
   public addEventChannel (eid: string) {
     if (this.eventChannels.has(eid)) {
-      logger.info('Event channel already exists for oid ' + this.oid + ' and eid ' + eid)
+      logger.warn('Event channel already exists for oid ' + this.oid + ' and eid ' + eid)
     } else {
       logger.info('Creating event channel ' + this.oid + ':' + eid)
       this.eventChannels.set(eid, new EventHandler(this.oid, eid))
@@ -142,7 +144,6 @@ export class XMPP {
       this.eventChannels.delete(eid)
     } else {
       logger.warn('Event channel ' + this.oid + ':' + eid + ' does not exist')
-      throw new MyError('Event channel does not exist', HttpStatusCode.NOT_FOUND)
     }
   }
 
@@ -154,15 +155,21 @@ export class XMPP {
       if (eventHandler) {
         return eventHandler
       } else {
-        throw new MyError('Event channel ' + this.oid + ':' + eid + ' does not exist')
+        throw new MyError('Event channel ' + this.oid + ':' + eid + ' does not exist', HttpStatusCode.NOT_FOUND)
       }
   }
 
   /**
    * Get all event channels list or only one class specified by eid
+   * Returns the values (EventHandler objects) or the keys (EID names)
+   * If values is true === EventHandlers
    */
-     public getAllEventChannels () {
-      return Array.from(this.eventChannels.values())
+     public getAllEventChannels (values: boolean = true) {
+      if (values) {
+        return Array.from(this.eventChannels.values())
+      } else {
+        return Array.from(this.eventChannels.keys())
+      }
     }
 
   // Private methods

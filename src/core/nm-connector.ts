@@ -54,7 +54,6 @@ export const nm = {
      */
     getCounters: async function(): Promise<GenericResponse<string>> {
         return request('counters', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
-        
     },
     /**
      *  Post counters to NM

@@ -18,6 +18,5 @@ export class EventHandler {
     } 
     public get subscribers(): Set<string> {
       return this._subscribers
-    }
-    
+    }  
 }

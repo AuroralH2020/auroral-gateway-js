@@ -3,6 +3,7 @@ import fs from 'fs'
 import { HttpStatusCode , logger , MyError } from '../utils'
 import { Config } from '../config'
 import { clients } from './xmpp'
+import { EventHandler } from './event.class'
 
 /**
  * Creates event channel for the given oid + eid
@@ -103,21 +104,26 @@ export function removeSubscriber(oid: string, eid: string, subscriberOid: string
 //         logger.warn('Event channel not found')
 //     }
 // }
+
 /**
  * Loads event channels settings from file
  */
 export function storeEventChannels() {
-    // logger.debug('Storing event channels')
-    // const oids = Array.from(clients.keys())
-    // const eventChannels = []
-    // for ()
-    // Array.from(eventHandlers.values())
-    // const eventChannelsJson = JSON.stringify(eventChannels)
-    // try {
-    //     fs.writeFileSync(path.join(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)), eventChannelsJson)
-    // } catch (err) {
-    //     logger.error('Error storing event channels: ' + err)
-    // }
+    logger.debug('Storing event channels')
+    const eventChannels: EventHandler[] = []
+    const oids = Array.from(clients.keys())
+    for (let i = 0, l = oids.length; i < l; i++) {
+        const xmppClient = clients.get(oids[i])
+        if (xmppClient) {
+            eventChannels.concat(Array.from(xmppClient.getAllEventChannels() as EventHandler[]))
+        }
+    }
+    const eventChannelsJson = JSON.stringify(eventChannels)
+    try {
+        fs.writeFileSync(path.join(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)), eventChannelsJson)
+    } catch (err) {
+        logger.error('Error storing event channels: ' + err)
+    }
 }
 
 /**
