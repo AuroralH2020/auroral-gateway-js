@@ -1,7 +1,7 @@
 import { client, xml } from '@xmpp/client'
 import EventEmmiter from 'node:events'
 import crypto from 'crypto'
-import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt } from '../types/xmpp-types'
+import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt, PropertiesOpt } from '../types/xmpp-types'
 import { HttpStatusCode, logger, errorHandler, MyError } from '../utils'
 import { Config } from '../config'
 import { EventHandler } from './event.class'
@@ -237,13 +237,13 @@ export class XMPP {
 
   // Events
 
-  public addEventChannel(eid: string, eventChannel: EventHandler | null = null) {
+  public addEventChannel(eid: string, eventChannel: { oid: string, eid: string, _subscribers: Set<string> } | null = null) {
     if (this.eventChannels.has(eid)) {
       logger.warn('Event channel already exists for oid ' + this.oid + ' and eid ' + eid)
     } else {
       logger.info('Creating event channel ' + this.oid + ':' + eid)
       if (eventChannel) {
-        this.eventChannels.set(eid, eventChannel)
+        this.eventChannels.set(eid, new EventHandler(eventChannel.oid, eventChannel.eid, eventChannel._subscribers))
       } else {
         this.eventChannels.set(eid, new EventHandler(this.oid, eid))
       }

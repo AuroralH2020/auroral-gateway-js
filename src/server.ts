@@ -6,7 +6,7 @@ import { Config } from './config'
 import { Token } from './core/security'
 import { nm } from './connectors/nm-connector'
 import { logger, errorHandler as eH } from './utils'
-import { loadEventChannels, storeEventChannels } from './core/events'
+import { storeEventChannels } from './core/events'
 
 /**
  * Error Handler. Provides full stack - only in dev
@@ -27,7 +27,6 @@ async function bootstrap () {
     await Token.start()
     logger.info(await nm.handshake())
     await initialize(Config.GATEWAY.ID, Config.GATEWAY.PASSWORD)
-    loadEventChannels()
     await startXMPPClient(Config.GATEWAY.ID)
     logger.info('##############################################')
     logger.info('##############################################')

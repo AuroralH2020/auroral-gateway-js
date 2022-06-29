@@ -8,7 +8,7 @@ import { responseBuilder } from '../../utils/response-builder'
 // Imports
 import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage } from '../../core/xmpp'
 import { RequestOperation, MessageType } from '../../types/xmpp-types'
-import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber } from '../../core/events'
+import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber, loadEventChannels } from '../../core/events'
 import { addSubscriberNetwork } from '../../core/networkMessages'
 import { JsonType } from '../../types/misc-types'
 
@@ -22,6 +22,7 @@ export const start: Ctrl = async (req, res) => {
     try {
         await initialize(oid, password)
         await startXMPPClient(oid)
+        loadEventChannels()
         return responseBuilder(HttpStatusCode.OK, res, null, null)
 	} catch (err) {
         const error = errorHandler(err)
