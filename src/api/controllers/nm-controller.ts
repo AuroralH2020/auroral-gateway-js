@@ -7,7 +7,7 @@ import { responseBuilder } from '../../utils/response-builder'
 
 // Imports
 import {  GtwRegistrationResponse, GtwUpdateResponse } from '../../types/gateway-types'
-import { nm } from '../../core/nm-connector'
+import { nm } from '../../connectors/nm-connector'
 import { JsonType } from '../../types/misc-types'
 import { createEventChannel } from '../../core/events'
 

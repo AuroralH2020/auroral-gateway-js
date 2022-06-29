@@ -21,24 +21,24 @@ ApiRouter
 .get('/objects/logout', basicAuth(), cs_ctrl.stop) // logout
 
 // RESOURCE CONSUMPTION
-.get('/objects/:oid/properties/:pid', cs_ctrl.getProperty) // getProperty
-.put('/objects/:oid/properties/:pid', cs_ctrl.putProperty) // putProperty
+.get('/objects/:oid/properties/:pid', basicAuth(), cs_ctrl.getProperty) // getProperty
+.put('/objects/:oid/properties/:pid', basicAuth(), cs_ctrl.putProperty) // putProperty
 
 // CONSUMPTION - EVENTS
-.get('/objects/:oid/events', cs_ctrl.getEventChannels) // getObjectEventChannels 
-.post('/events/:eid', cs_ctrl.activateEventChannel) // activateEventChannel
-.put('/events/:eid', cs_ctrl.publishEventToChannel) // publishEvent
-.delete('/events/:eid', cs_ctrl.dectivateEventChannel) // deactivateEventChannel
-.get('/objects/:oid/events/:eid', cs_ctrl.getRemoteEventChannelStatus) // statusRemoteEventChannel
-.post('/objects/:oid/events/:eid', cs_ctrl.subscribeToEventChannel) // subscribeRemoteEventChannel
-.delete('/objects/:oid/events/:eid', cs_ctrl.unsubscribeFromEventChannel) // unsubscribeRemoteEventChannel
+.get('/objects/:oid/events', basicAuth(), cs_ctrl.getEventChannels) // getObjectEventChannels 
+.post('/events/:eid', basicAuth(), cs_ctrl.activateEventChannel) // activateEventChannel
+.put('/events/:eid', basicAuth(), cs_ctrl.publishEventToChannel) // publishEvent
+.delete('/events/:eid', basicAuth(), cs_ctrl.dectivateEventChannel) // deactivateEventChannel
+.get('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.getRemoteEventChannelStatus) // statusRemoteEventChannel
+.post('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.subscribeToEventChannel) // subscribeRemoteEventChannel
+.delete('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.unsubscribeFromEventChannel) // unsubscribeRemoteEventChannel
 
 // CONSUMPTION - ACTIONS
-.get('/objects/:oid/actions', nm_ctrl.dummy)
-.get('/objects/:oid/actions/:aid', nm_ctrl.dummy)
-.post('/objects/:oid/actions/:aid', nm_ctrl.dummy)
-.get('/objects/:oid/actions/:aid/tasks/:tid', nm_ctrl.dummy)
-.delete('/objects/:oid/actions/:aid/tasks/:tid', nm_ctrl.dummy)
+.get('/objects/:oid/actions', basicAuth(), nm_ctrl.dummy)
+.get('/objects/:oid/actions/:aid', basicAuth(), nm_ctrl.dummy)
+.post('/objects/:oid/actions/:aid', basicAuth(), nm_ctrl.dummy)
+.get('/objects/:oid/actions/:aid/tasks/:tid', basicAuth(), nm_ctrl.dummy)
+.delete('/objects/:oid/actions/:aid/tasks/:tid', basicAuth(), nm_ctrl.dummy)
 
 // REGISTRATION
 .get('/agents/:agid/objects', nm_ctrl.getRegistrations) // getRegistrations

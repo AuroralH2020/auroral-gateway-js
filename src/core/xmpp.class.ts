@@ -1,7 +1,7 @@
 import { client, xml } from '@xmpp/client'
 import EventEmmiter from 'node:events'
 import crypto from 'crypto'
-import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options } from '../types/xmpp-types'
+import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt } from '../types/xmpp-types'
 import { HttpStatusCode, logger, errorHandler, MyError } from '../utils'
 import { Config } from '../config'
 import { EventHandler } from './event.class'
@@ -60,7 +60,7 @@ export class XMPP {
     }
   }
 
-  public async sendStanza(destinationOid: string, body: string | null, requestOperation: RequestOperation, messageType: MessageType, attributes: JsonType, parameters: JsonType, callback: (err: boolean, message: string) => void) {
+  public async sendStanza(destinationOid: string, body: JsonType | null, requestOperation: RequestOperation, messageType: MessageType, attributes: JsonType, parameters: JsonType, callback: (err: boolean, message: string) => void) {
     // Check if destination is in roster
     // Works in AURORAL, update for federated scenario!!! Same OID under different domain would be possible
     const jid = this.rosterItemsOid.get(destinationOid)?.jid
@@ -140,7 +140,7 @@ export class XMPP {
     })
   }
 
-  private async respondStanza(destinationOid: string, jid: string, requestId: number, requestOperation: number, body: string | null, attributes: JsonType, parameters: JsonType) {
+  private async respondStanza(destinationOid: string, jid: string, requestId: number, requestOperation: number, body: JsonType | null, attributes: JsonType, parameters: JsonType) {
     const payload: XMPPMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, requestBody: null, responseBody: body, parameters: {}, attributes: {} }
     const message = xml(
       'message',
@@ -286,7 +286,7 @@ export class XMPP {
 
   // Request handlers
 
-  private processReq(key: RequestOperation, options: any) {
+  private processReq(key: RequestOperation, options: Options) {
     switch (key) {
       case RequestOperation.GETPROPERTYVALUE:
         // Retrieve value and return
@@ -296,19 +296,20 @@ export class XMPP {
         return null
       case RequestOperation.SUBSCRIBETOEVENTCHANNEL:
         // Retrieve value and return
-        this.processChannelSubscription(options)
-        return 'Success'
+        this.processChannelSubscription(options as SubscribeChannelOpt)
+        return { message: 'Success' }
       default:
         return null
     }
   }
 
-  private processChannelSubscription(options: any) {
+  private processChannelSubscription (options: SubscribeChannelOpt) {
     const eventHandler = this.eventChannels.get(options.eid)
     if (eventHandler) {
       eventHandler.addSubscriber(options.originOid)
+      logger.info('New remote subscriber ' + options.originOid + ' added to channel ' + options.eid + ' of object ' + this.oid)
     } else {
-      throw new MyError('Event channel not found', HttpStatusCode.NOT_FOUND)
+      throw new MyError('Remote request failed: Event channel ' + options.eid + ' of object ' + this.oid + ' not found', HttpStatusCode.NOT_FOUND)
     }
   }
 

@@ -4,6 +4,7 @@
 import { logger, MyError, HttpStatusCode } from '../utils'
 import { RequestOperation, MessageType } from '../types/xmpp-types'
 import { XMPP } from './xmpp.class'
+import { JsonType } from '../types/misc-types'
 
 export const clients = new Map<string, XMPP>()
 
@@ -97,7 +98,7 @@ export const reloadRoster = async function (oid: string) {
  * @param message 
  * @returns 
  */
-export const sendMessage = function (oid: string, destination: string, message: string | null, requestOperation: RequestOperation, messageType: MessageType): Promise<{error: boolean, message: string}> {
+export const sendMessage = function (oid: string, destination: string, message: JsonType | null, requestOperation: RequestOperation, messageType: MessageType): Promise<{error: boolean, message: string}> {
     return new Promise((resolve, reject) => {
         const xmpp = clients.get(oid)
         if (xmpp) {

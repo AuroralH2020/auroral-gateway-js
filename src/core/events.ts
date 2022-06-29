@@ -132,7 +132,7 @@ export function addSubscriber(oid: string, eid: string, subscriberOid: string): 
         return { success: true, body: {} }
     } else {
         // send message to network
-        logger.info('Sending request over network')
+        logger.info('Destination OID ' + oid + ' not found... Sending request over network')
         return { success: false, body: {} }
     }
 }

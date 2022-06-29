@@ -35,8 +35,8 @@ export type XMPPMessage = {
     sourceAgid: string,
     sourceOid: string,
     destinationOid: string,
-    requestBody: string | null,
-    responseBody: string | null,
+    requestBody: JsonType | null,
+    responseBody: JsonType | null,
     attributes: JsonType,
     parameters: JsonType
 }
@@ -53,15 +53,14 @@ export type XMPPErrorMessage = {
 }
 
 export interface Options {
-    oid: string,
-    body?: any,
-    eid: string,
-    pid: string
+    originOid: string,
+    body: JsonType | null,
+    [x: string]: any
   }
   
-//   export interface OptionsEvent extends Options {
-//     eid: string
-//   }
+  export interface SubscribeChannelOpt extends Options {
+    eid: string
+  }
   
 //   export interface OptionsProperty extends Options {
 //     pid: string

@@ -4,7 +4,7 @@ import { stopAllXMPPClients, initialize, startXMPPClient } from './core/xmpp'
 import { app } from './app'
 import { Config } from './config'
 import { Token } from './core/security'
-import { nm } from './core/nm-connector'
+import { nm } from './connectors/nm-connector'
 import { logger, errorHandler as eH } from './utils'
 import { loadEventChannels, storeEventChannels } from './core/events'
 

@@ -7,7 +7,7 @@ import got, { Method, Headers, Response } from 'got'
 import { Config } from '../config'
 import { logger, errorHandler, HttpStatusCode, MyError } from '../utils'
 import { GenericResponse } from '../types/nm-types'
-import { Token } from './security'
+import { Token } from '../core/security'
 import { JsonType } from '../types/misc-types'
 
 // CONSTANTS 

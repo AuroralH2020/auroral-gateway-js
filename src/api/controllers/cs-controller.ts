@@ -10,6 +10,7 @@ import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage } 
 import { RequestOperation, MessageType } from '../../types/xmpp-types'
 import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber } from '../../core/events'
 import { addSubscriberNetwork } from '../../core/networkMessages'
+import { JsonType } from '../../types/misc-types'
 
 // Controllers
 
@@ -72,7 +73,7 @@ export const getProperty: getPropertyCtrl = async (req, res) => {
     }
 }
 
-type PutPropertyCtrl = expressTypes.Controller<{}, { destination: string, message: string }, {}, string, { oid: string, password: string }>
+type PutPropertyCtrl = expressTypes.Controller<{}, { destination: string, message: JsonType }, {}, string, { oid: string, password: string }>
 
 export const putProperty: PutPropertyCtrl = async (req, res) => {
     const { oid, password } = res.locals
@@ -167,10 +168,10 @@ export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, 
     try {
         const response = await addSubscriber(params.oid, params.eid, oid)
         if (!response.success) {
-            const networkResponse = await addSubscriberNetwork(oid, params.eid, params.oid)
-            return responseBuilder(HttpStatusCode.OK, res, null, networkResponse)
+            const networkResponse = await addSubscriberNetwork(params.oid, params.eid, oid)
+            return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' subscribed channel ' + params.eid + ' of remote object ' + params.oid)
         } else {
-            return responseBuilder(HttpStatusCode.OK, res, null, 'OID successfully added to subscribers')
+            return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' subscribed channel ' + params.eid + ' of local object ' + params.oid)
         }
     } catch (err: unknown) {
         const error = errorHandler(err)
@@ -199,7 +200,7 @@ export const unsubscribeFromEventChannel: UnsubscribeFromEventChannelCtrl = asyn
     }
 }
 
-type PublishEventToChannelCtrl = expressTypes.Controller<{ eid: string }, string, {}, string, { oid: string, password: string }>
+type PublishEventToChannelCtrl = expressTypes.Controller<{ eid: string }, JsonType, {}, string, { oid: string, password: string }>
 
 export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res) => {
     const { oid, password } = res.locals
