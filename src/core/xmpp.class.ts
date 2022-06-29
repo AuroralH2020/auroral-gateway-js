@@ -89,7 +89,7 @@ export class XMPP {
       (error, message) => {
         this.msgEvents.removeAllListeners(String(requestId))
         callback(error, message)
-      }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (10s)' }, callback
+      }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (10s)', status: HttpStatusCode.REQUEST_TIMEOUT }, callback
     )
     this.msgTimeouts.set(requestId, timeout) // Add to timeout list
     this.msgEvents.on(String(requestId), (data) => {
@@ -101,7 +101,7 @@ export class XMPP {
       this.msgEvents.removeAllListeners(String(requestId))
       if (data.error) {
         // Throw error
-         throw new MyError(data.error, data.status)
+         callback(true, data)
       }
       // Return response
       callback(false, data)
@@ -157,7 +157,7 @@ export class XMPP {
   private async respondStanzaWithError (destinationOid: string, jid: string, requestId: number, requestOperation: number, errorMessage: string, statusCode: number) {
     const payload: XMPPErrorMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, errorMessage , statusCode }
     const message = xml(
-      'error',
+      'message',
       { type: 'error', to: jid },
       xml('error', {}, JSON.stringify(payload)),
     )
@@ -240,9 +240,8 @@ public getAllEventChannels(values: boolean = true) {
       const { to, from, type } = stanza.attrs as { to: string, from: string, type: string }
       if (type === 'error') {
         logger.debug(this.oid + ' receiving error response...')
-        logger.debug({ to, from })
-        const body = stanza.getChild('error').text()
-        logger.debug(body)
+        // logger.debug({ to, from })
+        const body = JSON.parse(stanza.getChild('error').text())
         this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
       } else if (type === 'chat') {
         const body: XMPPMessage = JSON.parse(stanza.getChild('body').text())
@@ -265,6 +264,7 @@ public getAllEventChannels(values: boolean = true) {
             await this.respondStanza(body.sourceOid, from, body.requestId, body.requestOperation, response, {}, {})
           } catch (err: unknown) {
             const error = errorHandler(err)
+            logger.error('Returning network message with error... ' + error.message)
             await this.respondStanzaWithError(body.sourceOid, from, body.requestId, body.requestOperation, error.message, error.status)
           }
         } else if (body.messageType === 2) {
@@ -323,7 +323,7 @@ public getAllEventChannels(values: boolean = true) {
   private processChannelUnsubscription (options: SubscribeChannelOpt) {
     const eventHandler = this.eventChannels.get(options.eid)
     if (eventHandler) {
-      eventHandler.addSubscriber(options.originOid)
+      eventHandler.removeSubscriber(options.originOid)
       logger.info('Remote subscriber ' + options.originOid + ' removed from channel ' + options.eid + ' of object ' + this.oid)
       return ({ message: 'Object ' + options + ' unsubscribed channel ' + options.eid + ' of remote object ' + this.oid })
     } else {

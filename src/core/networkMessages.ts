@@ -19,7 +19,7 @@ import { MessageType, RequestOperation } from '../types/xmpp-types'
         if (xmppClient) {
             xmppClient.sendStanza(oid, null, RequestOperation.SUBSCRIBETOEVENTCHANNEL, MessageType.REQUEST, { eid }, {}, (err: boolean, message: JsonType) => {
                 if (err) {
-                    reject(message.error)
+                    reject(new MyError(message.error, message.status))
                 }
                 resolve(message)
             })
@@ -43,7 +43,7 @@ import { MessageType, RequestOperation } from '../types/xmpp-types'
         if (xmppClient) {
             xmppClient.sendStanza(oid, null, RequestOperation.UNSUBSCRIBEFROMEVENTCHANNEL, MessageType.REQUEST, { eid }, {}, (err: boolean, message: JsonType) => {
                 if (err) {
-                    reject(message.error)
+                    reject(new MyError(message.error, message.status))
                 }
                 resolve(message)
             })
