@@ -17,13 +17,37 @@ import { MessageType, RequestOperation } from '../types/xmpp-types'
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(subscriberOid)
         if (xmppClient) {
-            xmppClient.sendStanza(oid, null, RequestOperation.SUBSCRIBETOEVENTCHANNEL, MessageType.REQUEST, { eid }, {}, (err: boolean, message: string) => {
+            xmppClient.sendStanza(oid, null, RequestOperation.SUBSCRIBETOEVENTCHANNEL, MessageType.REQUEST, { eid }, {}, (err: boolean, message: JsonType) => {
                 if (err) {
-                    reject(message)
+                    reject(message.error)
                 }
                 resolve(message)
             })
             logger.info('Added subscriber ' + subscriberOid + ' to event channel ' + oid + ':' + eid)
+        } else {
+            throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
+        }
+    })
+}
+
+/**
+ * Removes subscriber from event channel for the given oid + eid
+ * If it does not exist, throws error
+ * @param oid - object id
+ * @param eid - event id
+ * @param subscriberOid - subscriber object id
+ */
+ export function removeSubscriberNetwork(oid: string, eid: string, subscriberOid: string) {
+    return new Promise((resolve, reject) => {
+        const xmppClient = clients.get(subscriberOid)
+        if (xmppClient) {
+            xmppClient.sendStanza(oid, null, RequestOperation.UNSUBSCRIBEFROMEVENTCHANNEL, MessageType.REQUEST, { eid }, {}, (err: boolean, message: JsonType) => {
+                if (err) {
+                    reject(message.error)
+                }
+                resolve(message)
+            })
+            logger.info('Remove subscriber ' + subscriberOid + ' from event channel ' + oid + ':' + eid)
         } else {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
         }

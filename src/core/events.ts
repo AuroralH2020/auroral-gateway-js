@@ -9,7 +9,7 @@ import { JsonType } from '../types/misc-types'
 // Types
 interface localResponse {
     success: boolean,
-    body: JsonType | string
+    body: JsonType
 }
 
 // ONLY LOCAL
@@ -149,9 +149,12 @@ export function removeSubscriber(oid: string, eid: string, subscriberOid: string
     if (xmppClient) {
         const eventHandler = xmppClient.getEventChannel(eid)
         eventHandler.removeSubscriber(subscriberOid)
-        logger.info('Removed subscriber ' + subscriberOid + ' from event channel ' + oid + ':' + eid)
+        logger.info('Removed subscriber ' + subscriberOid + ' to event channel ' + oid + ':' + eid)
+        return { success: true, body: {} }
     } else {
-        throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
+        // send message to network
+        logger.info('Destination OID ' + oid + ' not found... Sending request over network')
+        return { success: false, body: {} }
     }
 }
 
