@@ -29,3 +29,34 @@ import { MessageType, RequestOperation } from '../types/xmpp-types'
         }
     })
 }
+export function getPropertyNetwork(sourceOid: string, pid: string, requesterOid: string): JsonType {
+    return new Promise((resolve, reject) => {
+        const xmppClient = clients.get(requesterOid)
+        if (xmppClient) {
+            xmppClient.sendStanza(sourceOid, null, RequestOperation.GETPROPERTYVALUE, MessageType.REQUEST, { pid }, {}, (err: boolean, message: JsonType) => {
+                if (err) {
+                    reject(message)
+                }
+                resolve(message)
+            })
+        } else {
+            throw new MyError('XMPP client ' + sourceOid + ' does not exist', HttpStatusCode.NOT_FOUND) 
+        }
+    })
+}
+
+export function putPropertyNetwork(sourceOid: string, pid: string, requesterOid: string, body: JsonType): JsonType {
+    return new Promise((resolve, reject) => {
+        const xmppClient = clients.get(requesterOid)
+        if (xmppClient) {
+            xmppClient.sendStanza(sourceOid, body, RequestOperation.GETPROPERTYVALUE, MessageType.REQUEST, { pid }, {}, (err: boolean, message: JsonType) => {
+                if (err) {
+                    reject(message)
+                }
+                resolve(message)
+            })
+        } else {
+            throw new MyError('XMPP client ' + sourceOid + ' does not exist', HttpStatusCode.NOT_FOUND) 
+        }
+    })
+}

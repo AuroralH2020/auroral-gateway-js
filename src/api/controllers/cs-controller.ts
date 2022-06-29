@@ -6,11 +6,13 @@ import { logger, errorHandler } from '../../utils'
 import { responseBuilder } from '../../utils/response-builder'
 
 // Imports
-import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage } from '../../core/xmpp'
+import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage, clients } from '../../core/xmpp'
 import { RequestOperation, MessageType } from '../../types/xmpp-types'
 import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber } from '../../core/events'
-import { addSubscriberNetwork } from '../../core/networkMessages'
+import { addSubscriberNetwork, getPropertyNetwork, putPropertyNetwork } from '../../core/networkMessages'
 import { JsonType } from '../../types/misc-types'
+import { agent } from '../../connectors/agent-connector'
+import { getPropertyLocaly, putPropertyLocaly } from '../../core/properties'
 
 // Controllers
 
@@ -20,7 +22,7 @@ type CtrlStringArray = expressTypes.Controller<{}, {}, {}, string[], { oid: stri
 export const start: Ctrl = async (req, res) => {
     const { oid, password } = res.locals
     try {
-        await initialize(oid, password)
+        initialize(oid, password)
         await startXMPPClient(oid)
         return responseBuilder(HttpStatusCode.OK, res, null, null)
 	} catch (err) {
@@ -54,17 +56,24 @@ export const roster: CtrlStringArray = async (req, res) => {
 	}
 }
 
-type getPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string}, {}, {}, string, { oid: string, password: string }>
+type getPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string}, {}, {}, JsonType, { oid: string, password: string }>
 
 export const getProperty: getPropertyCtrl = async (req, res) => {
     const { oid, password } = res.locals
     const params = req.params
     try {
-        const response = await sendMessage(oid, params.oid, null, RequestOperation.GETPROPERTYVALUE, MessageType.REQUEST)
-        if (response.error) {
-            return responseBuilder(HttpStatusCode.SERVICE_UNAVAILABLE, res, response.message)       
+        // test localy if the client exists
+        const localResponse = await getPropertyLocaly(oid, params.pid, params.oid)
+        if (localResponse.success) {
+            return responseBuilder(HttpStatusCode.OK, res, JSON.stringify(localResponse.body))       
         } else {
-            return responseBuilder(HttpStatusCode.OK, res, null, response.message)
+            // if not, get the property from the network
+            const remoteResponse = getPropertyNetwork(oid, params.pid, params.oid)
+            if (remoteResponse.success) {
+                return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse.body)
+            } else {
+                return responseBuilder(HttpStatusCode.NOT_FOUND, res, remoteResponse.body)
+            }
         }
     } catch (err: unknown) {
         const error = errorHandler(err)
@@ -73,20 +82,28 @@ export const getProperty: getPropertyCtrl = async (req, res) => {
     }
 }
 
-type PutPropertyCtrl = expressTypes.Controller<{}, { destination: string, message: JsonType }, {}, string, { oid: string, password: string }>
+type PutPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string }, JsonType, {}, JsonType, { oid: string, password: string }>
 
 export const putProperty: PutPropertyCtrl = async (req, res) => {
     const { oid, password } = res.locals
-    const { destination, message } = req.body
+    const body = req.body
+    const params = req.params
     try {
-        if (!message) {
+        if (!body) {
             return responseBuilder(HttpStatusCode.BAD_REQUEST, res, 'PUT requests requires a valid message to be sent...')
         }
-        const response = await sendMessage(oid, destination, message, RequestOperation.SETPROPERTYVALUE, MessageType.REQUEST)
-        if (response.error) {
-            return responseBuilder(HttpStatusCode.SERVICE_UNAVAILABLE, res, response.message)       
+        // test localy if the client exists
+        const localResponse = await putPropertyLocaly(oid, params.pid, params.oid, body)
+        if (localResponse.success) {
+            return responseBuilder(HttpStatusCode.OK, res, JSON.stringify(localResponse.body))       
         } else {
-            return responseBuilder(HttpStatusCode.OK, res, null, response.message)
+            // if not, get the property from the network
+            const remoteResponse = putPropertyNetwork(oid, params.pid, params.oid, body)
+            if (remoteResponse.success) {
+                return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse.body)
+            } else {
+                return responseBuilder(HttpStatusCode.NOT_FOUND, res, remoteResponse.body)
+            }
         }
     } catch (err: unknown) {
         const error = errorHandler(err)
@@ -166,7 +183,7 @@ export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, 
     const { oid, password } = res.locals
     const params = req.params
     try {
-        const response = await addSubscriber(params.oid, params.eid, oid)
+        const response = addSubscriber(params.oid, params.eid, oid)
         if (!response.success) {
             const networkResponse = await addSubscriberNetwork(params.oid, params.eid, oid)
             return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' subscribed channel ' + params.eid + ' of remote object ' + params.oid)

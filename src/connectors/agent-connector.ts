@@ -29,19 +29,19 @@ const ApiHeader = {
 }
 
 export const agent = {
-    getProperty: async function(sourceoid: string, oid: string, pid: string): Promise<GenericResponse<string>> {
+    getProperty: async function(sourceoid: string, oid: string, pid: string): Promise<GenericResponse<JsonType>> {
         try {
             const response = await  request(`/objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
-            return response        
+            return response.message
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Getproperty failed...')
-            throw new MyError(error.message, HttpStatusCode.BAD_REQUEST)
+            throw new MyError(error.message, error.status)
         }
     },
-    putProperty: async function(sourceoid: string, oid: string, pid: string, value: JsonType): Promise<GenericResponse<string>> {
+    putProperty: async function(sourceoid: string, oid: string, pid: string, body: JsonType): Promise<GenericResponse<string>> {
         try {
-            const response = await  request(`/objects/${oid}/properties/${pid}`, 'PUT', value, { ...ApiHeader, 'sourceoid': sourceoid })
+            const response = await  request(`/objects/${oid}/properties/${pid}`, 'PUT', body, { ...ApiHeader, 'sourceoid': sourceoid })
             return response        
         } catch (err: unknown) {
             const error = errorHandler(err)
