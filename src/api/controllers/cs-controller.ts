@@ -8,8 +8,8 @@ import { responseBuilder } from '../../utils/response-builder'
 // Imports
 import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage, clients } from '../../core/xmpp'
 import { RequestOperation, MessageType } from '../../types/xmpp-types'
-import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber } from '../../core/events'
-import { addSubscriberNetwork, getPropertyNetwork, putPropertyNetwork } from '../../core/networkMessages'
+import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber, removeSubscriber, loadEventChannels } from '../../core/events'
+import { getPropertyNetwork, putPropertyNetwork, addSubscriberNetwork, removeSubscriberNetwork } from '../../core/networkMessages'
 import { JsonType } from '../../types/misc-types'
 import { agent } from '../../connectors/agent-connector'
 import { getPropertyLocaly, putPropertyLocaly } from '../../core/properties'
@@ -24,6 +24,7 @@ export const start: Ctrl = async (req, res) => {
     try {
         initialize(oid, password)
         await startXMPPClient(oid)
+        loadEventChannels()
         return responseBuilder(HttpStatusCode.OK, res, null, null)
 	} catch (err) {
         const error = errorHandler(err)
@@ -157,25 +158,25 @@ export const getEventChannels: GetEventChannelsCtrl = async (req, res) => {
     }
 }
 
-type GetEventChannelStatusCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, {}, { oid: string, password: string }>
+// type GetEventChannelStatusCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, {}, { oid: string, password: string }>
 
-export const getRemoteEventChannelStatus: GetEventChannelStatusCtrl = async (req, res) => {
-    const { oid, password } = res.locals
-    const { eid } = req.params
-    try {
-        // TBD: Do we need to check if is local or remote?
-        const response = await sendMessage(oid, eid, null, RequestOperation.SUBSCRIBETOEVENTCHANNEL, MessageType.REQUEST)
-        if (response.error) {
-            // TBD: Parse error code from response
-            return responseBuilder(HttpStatusCode.BAD_REQUEST, res, response.message)
-        }
-        return responseBuilder(HttpStatusCode.OK, res, null)
-    } catch (err: unknown) {
-        const error = errorHandler(err)
-        logger.error(error.message)
-        return responseBuilder(error.status, res, error.message)
-    }
-}
+// export const getRemoteEventChannelStatus: GetEventChannelStatusCtrl = async (req, res) => {
+//     const { oid, password } = res.locals
+//     const { eid } = req.params
+//     try {
+//         // TBD: Do we need to check if is local or remote?
+//         const response = await sendMessage(oid, eid, null, RequestOperation.SUBSCRIBETOEVENTCHANNEL, MessageType.REQUEST)
+//         if (response.error) {
+//             // TBD: Parse error code from response
+//             return responseBuilder(HttpStatusCode.BAD_REQUEST, res, response.error)
+//         }
+//         return responseBuilder(HttpStatusCode.OK, res, null)
+//     } catch (err: unknown) {
+//         const error = errorHandler(err)
+//         logger.error(error.message)
+//         return responseBuilder(error.status, res, error.message)
+//     }
+// }
 
 type SubscribeToEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
 
@@ -197,19 +198,19 @@ export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, 
     }
 }
 
-type UnsubscribeFromEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, {}, { oid: string, password: string }>
+type UnsubscribeFromEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
 
 export const unsubscribeFromEventChannel: UnsubscribeFromEventChannelCtrl = async (req, res) => {
     const { oid, password } = res.locals
-    const { eid } = req.params
+    const params = req.params
     try {
-       // TBD: Do we need to check if is local or remote?
-       const response = await sendMessage(oid, eid, null, RequestOperation.UNSUBSCRIBEFROMEVENTCHANNEL, MessageType.REQUEST)
-       if (response.error) {
-           // TBD: Parse error code from response
-           return responseBuilder(HttpStatusCode.BAD_REQUEST, res, response.message)
-       }
-       return responseBuilder(HttpStatusCode.OK, res, null)
+        const response = await removeSubscriber(params.oid, params.eid, oid)
+        if (!response.success) {
+            const networkResponse = await removeSubscriberNetwork(params.oid, params.eid, oid)
+            return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' unsusbcribed channel ' + params.eid + ' of remote object ' + params.oid)
+        } else {
+            return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' unsusbcribed channel ' + params.eid + ' of local object ' + params.oid)
+        }
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)

@@ -62,9 +62,9 @@ export interface Options {
     eid: string
   }
   
-//   export interface OptionsProperty extends Options {
-//     pid: string
-//   }
+  export interface PropertiesOpt extends Options {
+    pid: string
+  }
   
 //   export interface OptionsAction extends Options {
 //     aid: string

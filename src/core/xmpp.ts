@@ -98,7 +98,7 @@ export const reloadRoster = async function (oid: string) {
  * @param message 
  * @returns 
  */
-export const sendMessage = function (oid: string, destination: string, message: JsonType | null, requestOperation: RequestOperation, messageType: MessageType): Promise<{error: boolean, message: string}> {
+export const sendMessage = function (oid: string, destination: string, message: JsonType | null, requestOperation: RequestOperation, messageType: MessageType): Promise<{error: boolean, message: JsonType}> {
     return new Promise((resolve, reject) => {
         const xmpp = clients.get(oid)
         if (xmpp) {

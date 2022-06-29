@@ -1,7 +1,7 @@
 import { client, xml } from '@xmpp/client'
 import EventEmmiter from 'node:events'
 import crypto from 'crypto'
-import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt } from '../types/xmpp-types'
+import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt, PropertiesOpt } from '../types/xmpp-types'
 import { HttpStatusCode, logger, errorHandler, MyError } from '../utils'
 import { Config } from '../config'
 import { EventHandler } from './event.class'
@@ -60,7 +60,7 @@ export class XMPP {
     }
   }
 
-  public async sendStanza(destinationOid: string, body: JsonType | null, requestOperation: RequestOperation, messageType: MessageType, attributes: JsonType, parameters: JsonType, callback: (err: boolean, message: string) => void) {
+  public async sendStanza(destinationOid: string, body: JsonType | null, requestOperation: RequestOperation, messageType: MessageType, attributes: JsonType, parameters: JsonType, callback: (err: boolean, message: JsonType) => void) {
     // Check if destination is in roster
     // Works in AURORAL, update for federated scenario!!! Same OID under different domain would be possible
     const jid = this.rosterItemsOid.get(destinationOid)?.jid
@@ -89,7 +89,7 @@ export class XMPP {
       (error, message) => {
         this.msgEvents.removeAllListeners(String(requestId))
         callback(error, message)
-      }, Number(Config.NM.TIMEOUT), true, 'Timeout awaiting response (10s)', callback
+      }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (10s)' }, callback
     )
     this.msgTimeouts.set(requestId, timeout) // Add to timeout list
     this.msgEvents.on(String(requestId), (data) => {
@@ -99,6 +99,10 @@ export class XMPP {
       this.msgTimeouts.delete(requestId)
       // Remove listener
       this.msgEvents.removeAllListeners(String(requestId))
+      if (data.error) {
+        // Throw error
+         throw new MyError(data.error, data.status)
+      }
       // Return response
       callback(false, data)
     })
@@ -153,13 +157,61 @@ export class XMPP {
   private async respondStanzaWithError (destinationOid: string, jid: string, requestId: number, requestOperation: number, errorMessage: string, statusCode: number) {
     const payload: XMPPErrorMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, errorMessage , statusCode }
     const message = xml(
-      'error',
+      'message',
       { type: 'error', to: jid },
       xml('error', {}, JSON.stringify(payload)),
     )
     await this.client.send(message)
   }
 
+// Events
+
+public addEventChannel(eid: string, eventChannel: { oid: string, eid: string, _subscribers: Set<string> } | null = null) {
+  if (this.eventChannels.has(eid)) {
+    logger.warn('Event channel already exists for oid ' + this.oid + ' and eid ' + eid)
+  } else {
+    logger.info('Creating event channel ' + this.oid + ':' + eid)
+    if (eventChannel) {
+      this.eventChannels.set(eid, new EventHandler(eventChannel.oid, eventChannel.eid, eventChannel._subscribers))
+    } else {
+      this.eventChannels.set(eid, new EventHandler(this.oid, eid))
+    }
+  }
+}
+
+public removeEventChannel(eid: string) {
+  if (this.eventChannels.has(eid)) {
+    logger.info('Removing event channel with oid ' + this.oid + ' and eid ' + eid)
+    this.eventChannels.delete(eid)
+  } else {
+    logger.warn('Event channel ' + this.oid + ':' + eid + ' does not exist')
+  }
+}
+
+/**
+ * Get one event channel handler class specified by eid
+ */
+public getEventChannel(eid: string) {
+  const eventHandler = this.eventChannels.get(eid)
+  if (eventHandler) {
+    return eventHandler
+  } else {
+    throw new MyError('Event channel ' + this.oid + ':' + eid + ' does not exist', HttpStatusCode.NOT_FOUND)
+  }
+}
+
+/**
+ * Get all event channels list or only one class specified by eid
+ * Returns the values (EventHandler objects) or the keys (EID names)
+ * If values is true === EventHandlers
+ */
+public getAllEventChannels(values: boolean = true) {
+  if (values) {
+    return Array.from(this.eventChannels.values())
+  } else {
+    return Array.from(this.eventChannels.keys())
+  }
+}
   // Event handlers
 
   private onError(err: unknown) {
@@ -172,14 +224,26 @@ export class XMPP {
     clearInterval(this.rosterReloadTimer)
   }
 
+  private onOnline() {
+    logger.info('XMPP client with oid ' + this.oid + ' was logged in!')
+    // Makes itself available
+    this.client.send(xml('presence'))
+    // Reload roster
+    this.reloadRoster()
+    this.rosterReloadTimer = setInterval(() => {
+      this.reloadRoster()
+    }, Number(Config.XMPP.ROSTER_REFRESH)) // 10 min
+  }
+
   private async onStanza(stanza: any) {
     if (stanza.is('message')) {
       const { to, from, type } = stanza.attrs as { to: string, from: string, type: string }
       if (type === 'error') {
-        logger.debug(this.oid + ' error message...')
+        logger.debug(this.oid + ' receiving error response...')
         logger.debug({ to, from })
-        logger.debug(stanza.getChild('body').text())
-        logger.debug(stanza.getChild('error').text())
+        const body = stanza.getChild('error').text()
+        logger.debug(body)
+        this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
       } else if (type === 'chat') {
         const body: XMPPMessage = JSON.parse(stanza.getChild('body').text())
         const jid = this.rosterItemsOid.get(body.sourceOid)?.jid
@@ -195,12 +259,13 @@ export class XMPP {
         }
         if (body.messageType === 1) {
           // If it is a request, respond to it with the same requestId
-          logger.debug(this.oid + ' receiving message request...')
+          logger.debug(this.oid + ' receiving remote message request...')
           try {
             const response = this.processReq(body.requestOperation, { originOid: body.sourceOid, ...body.attributes, body: body.requestBody, ...body.parameters })
             await this.respondStanza(body.sourceOid, from, body.requestId, body.requestOperation, response, {}, {})
           } catch (err: unknown) {
             const error = errorHandler(err)
+            logger.error(error.message)
             await this.respondStanzaWithError(body.sourceOid, from, body.requestId, body.requestOperation, error.message, error.status)
           }
         } else if (body.messageType === 2) {
@@ -224,66 +289,6 @@ export class XMPP {
     }
   }
 
-  private onOnline() {
-    logger.info('XMPP client with oid ' + this.oid + ' was logged in!')
-    // Makes itself available
-    this.client.send(xml('presence'))
-    // Reload roster
-    this.reloadRoster()
-    this.rosterReloadTimer = setInterval(() => {
-      this.reloadRoster()
-    }, Number(Config.XMPP.ROSTER_REFRESH)) // 10 min
-  }
-
-  // Events
-
-  public addEventChannel(eid: string, eventChannel: EventHandler | null = null) {
-    if (this.eventChannels.has(eid)) {
-      logger.warn('Event channel already exists for oid ' + this.oid + ' and eid ' + eid)
-    } else {
-      logger.info('Creating event channel ' + this.oid + ':' + eid)
-      if (eventChannel) {
-        this.eventChannels.set(eid, eventChannel)
-      } else {
-        this.eventChannels.set(eid, new EventHandler(this.oid, eid))
-      }
-    }
-  }
-
-  public removeEventChannel(eid: string) {
-    if (this.eventChannels.has(eid)) {
-      logger.info('Removing event channel with oid ' + this.oid + ' and eid ' + eid)
-      this.eventChannels.delete(eid)
-    } else {
-      logger.warn('Event channel ' + this.oid + ':' + eid + ' does not exist')
-    }
-  }
-
-  /**
-   * Get one event channel handler class specified by eid
-   */
-  public getEventChannel(eid: string) {
-    const eventHandler = this.eventChannels.get(eid)
-    if (eventHandler) {
-      return eventHandler
-    } else {
-      throw new MyError('Event channel ' + this.oid + ':' + eid + ' does not exist', HttpStatusCode.NOT_FOUND)
-    }
-  }
-
-  /**
-   * Get all event channels list or only one class specified by eid
-   * Returns the values (EventHandler objects) or the keys (EID names)
-   * If values is true === EventHandlers
-   */
-  public getAllEventChannels(values: boolean = true) {
-    if (values) {
-      return Array.from(this.eventChannels.values())
-    } else {
-      return Array.from(this.eventChannels.keys())
-    }
-  }
-
   // Request handlers
 
   private processReq(key: RequestOperation, options: Options) {
@@ -296,8 +301,10 @@ export class XMPP {
         return null
       case RequestOperation.SUBSCRIBETOEVENTCHANNEL:
         // Retrieve value and return
-        this.processChannelSubscription(options as SubscribeChannelOpt)
-        return { message: 'Success' }
+        return this.processChannelSubscription(options as SubscribeChannelOpt)
+      case RequestOperation.UNSUBSCRIBEFROMEVENTCHANNEL:
+        // Retrieve value and return
+        return this.processChannelUnsubscription(options as SubscribeChannelOpt)
       default:
         return null
     }
@@ -308,6 +315,18 @@ export class XMPP {
     if (eventHandler) {
       eventHandler.addSubscriber(options.originOid)
       logger.info('New remote subscriber ' + options.originOid + ' added to channel ' + options.eid + ' of object ' + this.oid)
+      return ({ message: 'Object ' + options + ' subscribed channel ' + options.eid + ' of remote object ' + this.oid })
+    } else {
+      throw new MyError('Remote request failed: Event channel ' + options.eid + ' of object ' + this.oid + ' not found', HttpStatusCode.NOT_FOUND)
+    }
+  }
+
+  private processChannelUnsubscription (options: SubscribeChannelOpt) {
+    const eventHandler = this.eventChannels.get(options.eid)
+    if (eventHandler) {
+      eventHandler.addSubscriber(options.originOid)
+      logger.info('Remote subscriber ' + options.originOid + ' removed from channel ' + options.eid + ' of object ' + this.oid)
+      return ({ message: 'Object ' + options + ' unsubscribed channel ' + options.eid + ' of remote object ' + this.oid })
     } else {
       throw new MyError('Remote request failed: Event channel ' + options.eid + ' of object ' + this.oid + ' not found', HttpStatusCode.NOT_FOUND)
     }

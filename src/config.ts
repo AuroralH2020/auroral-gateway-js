@@ -38,7 +38,7 @@ export const Config = {
 		SETTINGS_FILE: process.env.EVENT_SETTINGS_FILE || 'events.json',
 	},
 	AGENT: {
-		IP: process.env.AGENT_IP!, 
+		IP: process.env.AGENT_HOST!, 
 		PORT: process.env.AGENT_PORT!,
 		TIMEOUT: process.env.AGENT_TIMEOUT || 10000 // 10 sec
 	}

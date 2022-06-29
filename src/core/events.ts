@@ -9,7 +9,7 @@ import { JsonType } from '../types/misc-types'
 // Types
 interface localResponse {
     success: boolean,
-    body: JsonType | string
+    body: JsonType
 }
 
 // ONLY LOCAL
@@ -63,12 +63,12 @@ export function getEventChannelsNames(oid: string): string[] {
  */
  export function storeEventChannels() {
     logger.debug('Storing event channels')
-    const eventChannels: EventHandler[] = []
+    let eventChannels: EventHandler[] = []
     const oids = Array.from(clients.keys())
     for (let i = 0, l = oids.length; i < l; i++) {
         const xmppClient = clients.get(oids[i])
         if (xmppClient) {
-            eventChannels.concat(Array.from(xmppClient.getAllEventChannels() as EventHandler[]))
+            eventChannels = eventChannels.concat(Array.from(xmppClient.getAllEventChannels() as EventHandler[]))
         }
     }
     const eventChannelsJson = JSON.stringify(eventChannels)
@@ -88,7 +88,7 @@ export function loadEventChannels() {
         const eventChannelsJson = fs.readFileSync(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)).toString()
         if (eventChannelsJson) {
             const eventChannels = JSON.parse(eventChannelsJson)
-            eventChannels.forEach((eventChannel: EventHandler) => {
+            eventChannels.forEach((eventChannel: { oid: string, eid: string, _subscribers: Set<string> }) => {
                 const xmppClient = clients.get(eventChannel.oid)
                 if (xmppClient) {
                     xmppClient.addEventChannel(eventChannel.eid, eventChannel)
@@ -149,9 +149,12 @@ export function removeSubscriber(oid: string, eid: string, subscriberOid: string
     if (xmppClient) {
         const eventHandler = xmppClient.getEventChannel(eid)
         eventHandler.removeSubscriber(subscriberOid)
-        logger.info('Removed subscriber ' + subscriberOid + ' from event channel ' + oid + ':' + eid)
+        logger.info('Removed subscriber ' + subscriberOid + ' to event channel ' + oid + ':' + eid)
+        return { success: true, body: {} }
     } else {
-        throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
+        // send message to network
+        logger.info('Destination OID ' + oid + ' not found... Sending request over network')
+        return { success: false, body: {} }
     }
 }
 
