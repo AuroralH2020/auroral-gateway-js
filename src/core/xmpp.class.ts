@@ -279,14 +279,7 @@ export class XMPP {
           logger.debug(this.oid + ' receiving message response...')
           this.msgEvents.emit(String(body.requestId), body.responseBody)
         } else if (body.messageType === 3) {
-          // Event --> @TBD check if ACK required, if no ACK you dont need to respond
-          try {
-            await agent.putEvent(body.sourceOid, body.parameters.eid, body.requestBody!)
-          } catch (err: unknown) {
-            const error = errorHandler(err)
-            logger.error('Returning network message with error... ' + error.message)
-            // await this.respondStanzaWithError(body.sourceOid, from, body.requestId, body.requestOperation, error.message, error.status)
-          }
+          await this.processEvents(body)
         } else {
           // If it is a response, emit event with requestId to close the HTTP connection
           logger.error('Unknown XMPP message type received...')
@@ -308,19 +301,16 @@ export class XMPP {
     switch (key) {
       case RequestOperation.GETPROPERTYVALUE:
         return (await agent.getProperty(options.originOid, options.pid, this.oid)).message
-      // Retrieve value and return
       case RequestOperation.SETPROPERTYVALUE:
         return (await agent.putProperty(options.originOid, options.pid, this.oid, options.body!)).message
-      // Retrieve value and return
       case RequestOperation.SUBSCRIBETOEVENTCHANNEL:
-        // Retrieve value and return
         return this.processChannelSubscription(options as SubscribeChannelOpt)
       case RequestOperation.UNSUBSCRIBEFROMEVENTCHANNEL:
-        // Retrieve value and return
         return this.processChannelUnsubscription(options as SubscribeChannelOpt)
       case RequestOperation.GETEVENTCHANNELSTATUS:
-        // Retrieve value and return
         return this.processChannelStatus(options as SubscribeChannelOpt)
+      case RequestOperation.GETTHINGDESCRIPTION:
+        return this.getSemanticInfo(options)
       default:
         return null
     }
@@ -354,6 +344,25 @@ export class XMPP {
       return { message: 'Channel is opened, there are ' + eventHandler.subscribers.size + ' subscribers' }
     } else {
       throw new MyError('Remote request failed: Event channel ' + options.eid + ' of object ' + this.oid + ' not found', HttpStatusCode.NOT_FOUND)
+    }
+  }
+
+  private async getSemanticInfo(options: Options) {
+    const response = await agent.discovery(this.oid, options.originOid, options.body ? options.body : undefined)
+    if (response.error) {
+      throw new MyError(response.error)
+    }
+    return response.message
+  }
+
+  private async processEvents(body: XMPPMessage) {
+    // Event --> @TBD check if ACK required, if no ACK you dont need to respond
+    try {
+      await agent.putEvent(body.sourceOid, body.parameters.eid, body.requestBody!)
+    } catch (err: unknown) {
+      const error = errorHandler(err)
+      logger.error('Returning network message with error... ' + error.message)
+      // await this.respondStanzaWithError(body.sourceOid, from, body.requestId, body.requestOperation, error.message, error.status)
     }
   }
 

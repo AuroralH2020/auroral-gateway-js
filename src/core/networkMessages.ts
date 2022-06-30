@@ -131,3 +131,25 @@ export function sendEventNetwork(oid: string, eid: string, sourceOid: string, bo
         }
     })
 }
+
+/**
+ * Sends a request to retrieve TD of and object, or sparql discovery query from another agent
+ * Sends message over the network
+ * @param oid 
+ * @param sparql 
+ */
+ export const getObjectInfoNetwork =  async function (oid: string, destinationOid: string, sparql?: JsonType): Promise<JsonType> {
+    return new Promise((resolve, reject) => {
+        const xmppClient = clients.get(oid)
+        if (xmppClient) {
+            xmppClient.sendStanza(destinationOid, sparql ? sparql : null, RequestOperation.GETTHINGDESCRIPTION, MessageType.REQUEST, {}, {}, (err: boolean, message: JsonType) => {
+                if (err) {
+                    reject(new MyError(message.error, message.status))
+                }
+                resolve(message)
+            })
+        } else {
+            throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
+        }
+    })
+}

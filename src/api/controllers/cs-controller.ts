@@ -6,18 +6,19 @@ import { logger, errorHandler } from '../../utils'
 import { responseBuilder } from '../../utils/response-builder'
 
 // Imports
-import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage, clients } from '../../core/xmpp'
-import { RequestOperation, MessageType } from '../../types/xmpp-types'
+import { startXMPPClient, stopXMPPClients, getRoster, initialize, getObjectInfo } from '../../core/xmpp'
 import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber, removeSubscriber, loadEventChannels, channelStatus, sendEvent } from '../../core/events'
-import { getPropertyNetwork, putPropertyNetwork, addSubscriberNetwork, removeSubscriberNetwork, getEventChannelStatusNetwork, sendEventNetwork } from '../../core/networkMessages'
+import { getPropertyNetwork, putPropertyNetwork, addSubscriberNetwork, removeSubscriberNetwork, getEventChannelStatusNetwork, sendEventNetwork, getObjectInfoNetwork } from '../../core/networkMessages'
 import { JsonType } from '../../types/misc-types'
-import { agent } from '../../connectors/agent-connector'
 import { getPropertyLocaly, putPropertyLocaly } from '../../core/properties'
 
-// Controllers
+/**
+ * Controllers
+ */   
+
+// Authentication controllers
 
 type Ctrl = expressTypes.Controller<{}, {}, {}, null, { oid: string, password: string }>
-type CtrlStringArray = expressTypes.Controller<{}, {}, {}, string[], { oid: string, password: string }>
 
 export const start: Ctrl = async (req, res) => {
     const { oid, password } = res.locals
@@ -45,6 +46,10 @@ export const stop: Ctrl = async (req, res) => {
 	}
 }
 
+// Discovery controllers
+
+type CtrlStringArray = expressTypes.Controller<{}, {}, {}, string[], { oid: string, password: string }>
+
 export const roster: CtrlStringArray = async (req, res) => {
     const { oid, password } = res.locals
     try {
@@ -56,6 +61,29 @@ export const roster: CtrlStringArray = async (req, res) => {
         return responseBuilder(error.status, res, error.message)
 	}
 }
+
+type CtrlSparqlDiscovery = expressTypes.Controller<{ oid: string }, {}, JsonType | undefined, JsonType, { oid: string, password: string }>
+
+export const discovery: CtrlSparqlDiscovery = async (req, res) => {
+    const { oid, password } = res.locals
+    const params = req.params
+    const sparql = req.body
+    try {
+        const response = await getObjectInfo(oid, params.oid, sparql)
+        if (response.success) {
+            return responseBuilder(HttpStatusCode.OK, res, null, response.body.message as JsonType)
+        } else {
+            const response = await getObjectInfoNetwork(oid, params.oid, sparql)
+            return responseBuilder(HttpStatusCode.OK, res, null, response)
+        }
+	} catch (err) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+	}
+}
+
+// Resource consumption controllers
 
 type getPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string}, {}, {}, JsonType, { oid: string, password: string }>
 
@@ -104,6 +132,8 @@ export const putProperty: PutPropertyCtrl = async (req, res) => {
     }
 }
 
+// Event controllers
+
 type ActivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, {}, { oid: string, password: string }>
 
 export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) => {
@@ -148,26 +178,6 @@ export const getEventChannels: GetEventChannelsCtrl = async (req, res) => {
         return responseBuilder(error.status, res, error.message)
     }
 }
-
-// type GetEventChannelStatusCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, {}, { oid: string, password: string }>
-
-// export const getRemoteEventChannelStatus: GetEventChannelStatusCtrl = async (req, res) => {
-//     const { oid, password } = res.locals
-//     const { eid } = req.params
-//     try {
-//         // TBD: Do we need to check if is local or remote?
-//         const response = await sendMessage(oid, eid, null, RequestOperation.SUBSCRIBETOEVENTCHANNEL, MessageType.REQUEST)
-//         if (response.error) {
-//             // TBD: Parse error code from response
-//             return responseBuilder(HttpStatusCode.BAD_REQUEST, res, response.error)
-//         }
-//         return responseBuilder(HttpStatusCode.OK, res, null)
-//     } catch (err: unknown) {
-//         const error = errorHandler(err)
-//         logger.error(error.message)
-//         return responseBuilder(error.status, res, error.message)
-//     }
-// }
 
 type SubscribeToEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
 

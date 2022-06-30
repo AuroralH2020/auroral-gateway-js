@@ -2,9 +2,9 @@
  * Interface to XMPP engine
  */
 import { logger, MyError, HttpStatusCode } from '../utils'
-import { RequestOperation, MessageType } from '../types/xmpp-types'
 import { XMPP } from './xmpp.class'
 import { JsonType } from '../types/misc-types'
+import { agent } from '../connectors/agent-connector'
 
 export const clients = new Map<string, XMPP>()
 
@@ -92,21 +92,22 @@ export const reloadRoster = async function (oid: string) {
 }
 
 /**
- * Send stanza to some other client of the XMPP network
- * @param oid 
- * @param destination 
- * @param message 
- * @returns 
+ * Sends a request to retrieve TD of and object, or sparql discovery query from another agent
+ * @param oid
+ * @param destinationOid 
+ * @param sparql 
  */
-export const sendMessage = function (oid: string, destination: string, message: JsonType | null, requestOperation: RequestOperation, messageType: MessageType): Promise<{error: boolean, message: JsonType}> {
-    return new Promise((resolve, reject) => {
-        const xmpp = clients.get(oid)
-        if (xmpp) {
-                xmpp.sendStanza(destination, message, requestOperation, messageType, {}, {}, (error, message) => {
-                    resolve({ error, message })
-                })
+export const getObjectInfo =  async function (oid: string, destinationOid: string, sparql?: JsonType) {
+    const xmpp = clients.get(destinationOid)
+    if (xmpp) {
+        const response = await agent.discovery(oid, destinationOid, sparql)
+        if (response.error) {
+            throw new MyError(response.error)
         } else {
-            throw new MyError('XMPP Client not found in pool', HttpStatusCode.NOT_FOUND)
+            return { success: true, body: { message: response.message } }
         }
-    })
+    } else {
+        // send message to network
+        return { success: false, body: {} }
+    }
 }

@@ -29,7 +29,7 @@ ApiRouter
 .post('/events/:eid', basicAuth(), cs_ctrl.activateEventChannel) // activateEventChannel
 .put('/events/:eid', basicAuth(), cs_ctrl.publishEventToChannel) // publishEvent
 .delete('/events/:eid', basicAuth(), cs_ctrl.dectivateEventChannel) // deactivateEventChannel
-.get('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.eventChannelStatus) // cs_ctrl.getRemoteEventChannelStatus) // statusRemoteEventChannel
+.get('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.eventChannelStatus) // statusRemoteEventChannel
 .post('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.subscribeToEventChannel) // subscribeRemoteEventChannel
 .delete('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.unsubscribeFromEventChannel) // unsubscribeRemoteEventChannel
 
@@ -52,7 +52,7 @@ ApiRouter
 .get('/discovery/nodes/community/:commid', nm_ctrl.getNodesInCommunity) // communityNodes
 .get('/discovery/items/organisation', nm_ctrl.getItemsInMyOrganisation) // organisationItems
 .get('/discovery/items/contract/:ctid', nm_ctrl.getItemsInContract) // contractItems
-.post('/objects/:oid', nm_ctrl.dummy) // discoveryRemote ????
+.post('/objects/:oid', basicAuth(), cs_ctrl.discovery) // discoveryRemote
 .get('/agents/cid/:reqid', nm_ctrl.getCidFromReqid) // getCid
 .get('/agents/partners', nm_ctrl.getPartners) // getPartners
 .get('/agents/communities/', nm_ctrl.getCommunities) // getCommunities
