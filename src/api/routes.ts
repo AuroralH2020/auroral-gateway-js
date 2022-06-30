@@ -63,9 +63,7 @@ ApiRouter
 .get('/security/contracts/:cid', nm_ctrl.getContractedItemsByCid) // getContracts
 
 // UNUSED
-// .get('/objects/:oid/properties', ctrl.dummy)
-// .put('/agents/:agid/objects/update', ctrl.dummy)
-// .get('/discovery/nodes/organisation/:cid', ctrl.dummy)
-// .get('/security/relationship/:rid', nm_ctrl.dummy) 
+// .get('/discovery/nodes/organisation/:cid', ctrl.dummy) // Implement
+// .get('/security/relationship/:rid', nm_ctrl.dummy) // Implement
 
 export { ApiRouter }

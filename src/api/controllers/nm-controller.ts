@@ -1,14 +1,14 @@
 // Controller common imports
-import Express from 'express'
 import { expressTypes } from '../../types/index'
 import { HttpStatusCode } from '../../utils/http-status-codes'
 import { logger, errorHandler } from '../../utils'
 import { responseBuilder } from '../../utils/response-builder'
 
 // Imports
-import {  GtwRegistrationResponse, GtwUpdateResponse } from '../../types/gateway-types'
+import {  GtwUpdateResponse } from '../../types/gateway-types'
 import { nm } from '../../connectors/nm-connector'
 import { JsonType } from '../../types/misc-types'
+import { updateLocalRegistrations } from '../../core/registrations'
 
 // Controllers
 
@@ -42,6 +42,8 @@ export const postRegistrations: postRegistrationsCtrl = async (req, res) => {
         const { agid, items } = req.body
         try {
                 const response = await nm.registerItems(agid, items)
+                // Update local registrations array
+                await updateLocalRegistrations()
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)
 	} catch (err) {
                 const error = errorHandler(err)
@@ -67,8 +69,10 @@ type removeRegistrationCtrl = expressTypes.Controller<{ agid: string }, { oids: 
 export const removeRegistration: removeRegistrationCtrl = async (req, res) => {
         const { oids } = req.body
         const { agid } = req.params
-    try {
+        try {
                 const response = await nm.removeItems(agid, oids)
+                // Update local registrations array
+                await updateLocalRegistrations()
                 return responseBuilder(HttpStatusCode.OK, res, null,  response.message)
         } catch (err) {
         const error = errorHandler(err)

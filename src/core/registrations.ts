@@ -13,7 +13,7 @@ export const getRegistrations = async function (): Promise<string[]> {
     if (registration) {
         return registration
     } else {
-        await updateRegistrations()
+        await updateLocalRegistrations()
         return registration ? registration : []
     }
 }
@@ -21,7 +21,7 @@ export const getRegistrations = async function (): Promise<string[]> {
 /**
  * Updates the registrations array from NM
  */
-export const updateRegistrations = async function () {
+export const updateLocalRegistrations = async function () {
     try {
         const response = await nm.getAgentItems(Config.GATEWAY.ID)
         registration = response.message
