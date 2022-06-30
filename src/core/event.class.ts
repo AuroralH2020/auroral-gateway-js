@@ -5,10 +5,12 @@ export class EventHandler {
     private _subscribers: Set<string> = new Set<string>()
    
     // Creating event channel
-    constructor(oid: string, eid: string, subscribers: Set<string> = new Set<string>()) {
+    constructor(oid: string, eid: string, subscribers: Array<string> = []) {
       this.oid = oid
       this.eid = eid
-      this._subscribers = subscribers
+      for (const s of subscribers) {
+        this.addSubscriber(s)
+      }
     }
     public addSubscriber(oid: string) {
       this._subscribers.add(oid)

@@ -28,6 +28,7 @@ class Events {
      * @param eid - event id
      */
     public createEventChannel(oid: string, eid: string): void {
+        logger.debug('Creating event channel ' + oid + ':' + eid)
         const xmppClient = clients.get(oid)
         if (!xmppClient) {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
@@ -49,6 +50,7 @@ class Events {
      * @param eid - event id
      */
     public removeEventChannel(oid: string, eid: string): void {
+        logger.debug('Removing event channel ' + oid + ':' + eid)
         const xmppClient = clients.get(oid)
         if (!xmppClient) {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
@@ -67,6 +69,7 @@ class Events {
      * @returns 
      */
     public getEventChannelsNames(oid: string): string[] {
+        logger.debug('Retrieving event channels names for ' + oid)
         const xmppClient = clients.get(oid)
         if (!xmppClient) {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
@@ -85,6 +88,7 @@ class Events {
      * @returns 
      */
     public getSubscribers(oid: string, eid: string): string[] {
+        logger.debug('Retrieving subscribers for ' + oid + ':' + eid)
         const xmppClient = clients.get(oid)
         if (!xmppClient) {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
@@ -104,6 +108,7 @@ class Events {
      * @param subscriberOid - subscriber object id
      */
     public addSubscriber(oid: string, eid: string, subscriberOid: string): localResponse {
+        logger.debug('Adding subscriber ' + subscriberOid + ' to ' + oid + ':' + eid)
         const xmppClient = clients.get(oid)
         if (!xmppClient) {
             return { success: false, body: {} }
@@ -113,9 +118,9 @@ class Events {
             if (!eventChannel.has(eid)) {
                 throw new MyError('Event channel ' + oid + ':' + eid + ' does not exist', HttpStatusCode.NOT_FOUND)
             }
-            const eventHandler =  eventChannel.get(eid)
+            const eventHandler = eventChannel.get(eid)
             eventHandler?.addSubscriber(subscriberOid)
-            return { success: false, body: { message: 'Object ' + subscriberOid + ' subscribed channel ' + eid + ' of object ' + oid } }
+            return { success: true, body: { message: 'Object ' + subscriberOid + ' subscribed channel ' + eid + ' of object ' + oid } }
         } else {
             throw new MyError('Event channel ' + oid + ':' + eid + ' does not exist', HttpStatusCode.NOT_FOUND)
         }
@@ -128,6 +133,7 @@ class Events {
      * @param subscriberOid - subscriber object id
      */
     public removeSubscriber(oid: string, eid: string, subscriberOid: string) {
+        logger.debug('Removing subscriber ' + subscriberOid + ' from ' + oid + ':' + eid)
         const xmppClient = clients.get(oid)
         if (!xmppClient) {
             return { success: false, body: {} }
@@ -139,13 +145,14 @@ class Events {
             }
             const eventHandler =  eventChannel.get(eid)
             eventHandler?.removeSubscriber(subscriberOid)
-            return { success: false, body: { message: 'Object ' + subscriberOid + ' unsubscribed channel ' + eid + ' of remote object ' + oid } }
+            return { success: true, body: { message: 'Object ' + subscriberOid + ' unsubscribed channel ' + eid + ' of remote object ' + oid } }
         } else {
             throw new MyError('Event channel ' + oid + ':' + eid + ' does not exist', HttpStatusCode.NOT_FOUND)
         }
     }
 
     public channelStatus(oid: string, eid: string, sourceOid: string): localResponse {
+        logger.debug('Retrieving channel status for ' + oid + ':' + eid)
         const xmppClient = clients.get(oid)
         if (xmppClient) {
             const eventChannel =  this.eventChannels.get(oid)
@@ -166,6 +173,7 @@ class Events {
     }
 
     public sendEvent(oid: string, eid: string, body: JsonType): localResponse {
+        logger.debug('Sending event ' + eid + ' / ' + oid)
         const xmppClient = clients.get(oid)
         if (xmppClient) {
             agent.putEvent(oid, eid, body)
@@ -183,7 +191,11 @@ class Events {
     public storeEventChannelsToFile() {
         const array = []
         for (const [oid, eventChannel] of this.eventChannels) {
-            array.push({ oid, map: Object.fromEntries(eventChannel.entries()) })
+            const oidArray = []
+            for (const [eid, eventHandler] of eventChannel) {
+                oidArray.push({ eid: eid, subscribers: Array.from(eventHandler.subscribers) })
+            }
+            array.push({ oid, eventChannels: oidArray })
         }
         const eventChannelsJsonString = JSON.stringify(array)
         fs.writeFileSync(path.join(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)), eventChannelsJsonString) // TODO TEST
@@ -195,15 +207,17 @@ class Events {
     public loadEventChannelsFromFile() {
         try {
             const eventChannelsJsonString = fs.readFileSync(path.join(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)), 'utf8')
-            const eventChannelsJson = JSON.parse(eventChannelsJsonString)
-            for (const eventChannel of eventChannelsJson) {
-                const oid = eventChannel.oid
-                const map = eventChannel.map as Map<string, EventHandler>
-                const eventChannelMap = new Map<string, EventHandler>()
-                for (const [eid, eventHandler] of Object.entries(map)) {
-                    eventChannelMap.set(eid, new EventHandler(oid, eid, eventHandler._subscribers))
+            const eventChannels = JSON.parse(eventChannelsJsonString)
+            for (const eventChannel of eventChannels) {
+                const oid = eventChannel.oid as string
+                const oidEvenChannels = eventChannel.eventChannels as { eid: string, subscribers: string[]}[]
+                const secondLevelMap: Map <string, EventHandler> = new Map() 
+                for (const event of oidEvenChannels) {
+                    const eid = event.eid as string
+                    const subscribers = event.subscribers as string[]
+                    secondLevelMap.set(eid, new EventHandler(oid, eid, subscribers))
                 }
-                this.eventChannels.set(oid, eventChannelMap)
+                this.eventChannels.set(oid, secondLevelMap)
             }
         } catch (err) {
             const error = errorHandler(err)

@@ -287,7 +287,7 @@ export class XMPP {
     if (!response.success) {
       throw new MyError('Object not found', HttpStatusCode.BAD_REQUEST)
     }
-    return { ...response.body }
+    return ({ ...response.body })
   }
 
   private async getSemanticInfo(options: Options) {

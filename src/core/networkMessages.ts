@@ -118,7 +118,7 @@ export function getEventChannelStatusNetwork(oid: string, eid: string, sourceOid
 
 export function sendEventNetwork(oid: string, eid: string, sourceOid: string, body: JsonType) {
     return new Promise((resolve, reject) => {
-        const xmppClient = clients.get(oid)
+        const xmppClient = clients.get(sourceOid)
         if (xmppClient) {
             xmppClient.sendStanza(oid, body, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT, { eid }, {}, (err: boolean, message: JsonType) => {
                 if (err) {

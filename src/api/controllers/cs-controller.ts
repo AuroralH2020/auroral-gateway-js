@@ -231,6 +231,7 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
             try {
                 const response = events.sendEvent(subscriber, eid, message)
                 if (!response.success) {
+                    logger.debug(`PublishEventToChannel: ${oid} ${eid} ${subscriber} ${message}`)
                     sendEventNetwork(subscriber, eid, oid, message)
                 }
             } catch (error) {
