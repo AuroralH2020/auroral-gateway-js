@@ -5,6 +5,7 @@ import { Config } from '../config'
 import { clients } from './xmpp'
 import { EventHandler } from './event.class'
 import { JsonType } from '../types/misc-types'
+import { agent } from '../connectors/agent-connector'
 
 // Types
 interface localResponse {
@@ -154,6 +155,30 @@ export function removeSubscriber(oid: string, eid: string, subscriberOid: string
     } else {
         // send message to network
         logger.info('Destination OID ' + oid + ' not found... Sending request over network')
+        return { success: false, body: {} }
+    }
+}
+
+export function channelStatus(oid: string, eid: string, sourceOid: string): localResponse {
+    const xmppClient = clients.get(oid)
+    if (xmppClient) {
+        const eventHandler = xmppClient.getEventChannel(eid)
+        return { success: true, body: { message: 'Channel is opened, there are ' + eventHandler.subscribers.size + ' subscribers' } }
+    } else {
+        // send message to network
+        logger.info('Destination OID ' + oid + ' not found... Sending request over network')
+        return { success: false, body: {} }
+    }
+}
+
+export function sendEvent(oid: string, eid: string, body: JsonType): localResponse {
+    const xmppClient = clients.get(oid)
+    if (xmppClient) {
+        agent.putEvent(oid, eid, body)
+        return { success: true, body: {} }
+    } else {
+        // send message to network
+        logger.info('Destination OID ' + oid + ' not found...')
         return { success: false, body: {} }
     }
 }

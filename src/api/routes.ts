@@ -21,15 +21,15 @@ ApiRouter
 .get('/objects/logout', basicAuth(), cs_ctrl.stop) // logout
 
 // RESOURCE CONSUMPTION
-.get('/objects/:oid/properties/:pid', basicAuth(), nm_ctrl.dummy) // cs_ctrl.getProperty) // getProperty
-.put('/objects/:oid/properties/:pid', basicAuth(), nm_ctrl.dummy) // cs_ctrl.putProperty) // putProperty
+.get('/objects/:oid/properties/:pid', basicAuth(), cs_ctrl.getProperty) // cs_ctrl.getProperty) // getProperty
+.put('/objects/:oid/properties/:pid', basicAuth(), cs_ctrl.putProperty) // cs_ctrl.putProperty) // putProperty
 
 // CONSUMPTION - EVENTS
 .get('/objects/:oid/events', basicAuth(), cs_ctrl.getEventChannels) // getObjectEventChannels 
 .post('/events/:eid', basicAuth(), cs_ctrl.activateEventChannel) // activateEventChannel
 .put('/events/:eid', basicAuth(), cs_ctrl.publishEventToChannel) // publishEvent
 .delete('/events/:eid', basicAuth(), cs_ctrl.dectivateEventChannel) // deactivateEventChannel
-.get('/objects/:oid/events/:eid', basicAuth(), nm_ctrl.dummy) // cs_ctrl.getRemoteEventChannelStatus) // statusRemoteEventChannel
+.get('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.eventChannelStatus) // cs_ctrl.getRemoteEventChannelStatus) // statusRemoteEventChannel
 .post('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.subscribeToEventChannel) // subscribeRemoteEventChannel
 .delete('/objects/:oid/events/:eid', basicAuth(), cs_ctrl.unsubscribeFromEventChannel) // unsubscribeRemoteEventChannel
 

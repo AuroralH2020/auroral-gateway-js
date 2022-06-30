@@ -12,7 +12,7 @@ import { JsonType } from '../types/misc-types'
 // CONSTANTS 
 
 const callApi = got.extend({
-    prefixUrl: Config.AGENT.IP + ':' + Config.AGENT.PORT + '/agent',
+    prefixUrl: Config.AGENT.IP + ':' + Config.AGENT.PORT + '/agent/',
     responseType: 'json',
     isStream: false,
     throwHttpErrors: true, // If true 4XX and 5XX throw an error
@@ -29,29 +29,32 @@ const ApiHeader = {
 }
 
 export const agent = {
-    getProperty: async function(sourceoid: string, oid: string, pid: string): Promise<GenericResponse<JsonType>> {
+    getProperty: async function(sourceoid: string, pid: string, oid: string): Promise<GenericResponse<JsonType>> {
         try {
-            const response = await  request(`/objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
-            return response.message
+            logger.debug('Getting property from agent: OID:' + oid + ' PID:' + pid)
+            const response = await request(`objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
+            // const response = await Promise.resolve({ message: { test: 'ok' } }) as GenericResponse<any>
+            return response
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Getproperty failed...')
             throw new MyError(error.message, error.status)
         }
     },
-    putProperty: async function(sourceoid: string, oid: string, pid: string, body: JsonType): Promise<GenericResponse<string>> {
+    putProperty: async function(sourceoid: string, pid: string, oid: string, body: JsonType): Promise<GenericResponse<JsonType>> {
         try {
-            const response = await  request(`/objects/${oid}/properties/${pid}`, 'PUT', body, { ...ApiHeader, 'sourceoid': sourceoid })
+            logger.debug('Putting property to agent: ' + oid + ' ' + pid)
+            const response = await request(`objects/${oid}/properties/${pid}`, 'PUT', body, { ...ApiHeader, 'sourceoid': sourceoid })
             return response        
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Putproperty failed...')
-            throw new MyError(error.message, HttpStatusCode.BAD_REQUEST)
+            throw new MyError(error.message, error.status)
         }
     },
     putEvent: async function(oid: string, eid: string, value: JsonType): Promise<GenericResponse<string>> {
         try {
-            const response = await  request(`/objects/${oid}/events/${eid}`, 'PUT', value , { ...ApiHeader })
+            const response = await  request(`objects/${oid}/events/${eid}`, 'PUT', value , { ...ApiHeader })
             return response        
         } catch (err: unknown) {
             const error = errorHandler(err)
@@ -61,7 +64,7 @@ export const agent = {
     },
     discovery: async function(sourceoid: string, oid: string, sparql: string | undefined): Promise<GenericResponse<string>> {
         try {
-            const response = await  request(`/objects/${oid}/discovery`, 'GET', sparql ? { sparql } : undefined, { ...ApiHeader, 'sourceoid': sourceoid })
+            const response = await  request(`objects/${oid}/discovery`, 'GET', sparql ? { sparql } : undefined, { ...ApiHeader, 'sourceoid': sourceoid })
             return response        
         } catch (err: unknown) {
             const error = errorHandler(err)
@@ -71,7 +74,7 @@ export const agent = {
     },
     notify: async function(agid: string, nid: string, data: JsonType): Promise<GenericResponse<string>> {
         try {
-            const response = await  request(`/objects/${agid}/notification/${nid}`, 'POST', data , { ...ApiHeader })
+            const response = await  request(`objects/${agid}/notification/${nid}`, 'POST', data , { ...ApiHeader })
             return response        
         } catch (err: unknown) {
             const error = errorHandler(err)

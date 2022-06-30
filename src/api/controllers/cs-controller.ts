@@ -8,8 +8,8 @@ import { responseBuilder } from '../../utils/response-builder'
 // Imports
 import { startXMPPClient, stopXMPPClients, getRoster, initialize, sendMessage, clients } from '../../core/xmpp'
 import { RequestOperation, MessageType } from '../../types/xmpp-types'
-import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber, removeSubscriber, loadEventChannels } from '../../core/events'
-import { getPropertyNetwork, putPropertyNetwork, addSubscriberNetwork, removeSubscriberNetwork } from '../../core/networkMessages'
+import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber, removeSubscriber, loadEventChannels, channelStatus, sendEvent } from '../../core/events'
+import { getPropertyNetwork, putPropertyNetwork, addSubscriberNetwork, removeSubscriberNetwork, getEventChannelStatusNetwork, sendEventNetwork } from '../../core/networkMessages'
 import { JsonType } from '../../types/misc-types'
 import { agent } from '../../connectors/agent-connector'
 import { getPropertyLocaly, putPropertyLocaly } from '../../core/properties'
@@ -64,17 +64,14 @@ export const getProperty: getPropertyCtrl = async (req, res) => {
     const params = req.params
     try {
         // test localy if the client exists
-        const localResponse = await getPropertyLocaly(oid, params.pid, params.oid)
-        if (localResponse.success) {
-            return responseBuilder(HttpStatusCode.OK, res, JSON.stringify(localResponse.body))       
+        logger.debug(`GetProperty request OID:${params.oid} PID:${params.pid}`)
+        const localResponse = await getPropertyLocaly(oid , params.pid, params.oid)
+        if (!localResponse.success) {
+             // if not, get the property from the network
+             const remoteResponse = await getPropertyNetwork(oid, params.pid, params.oid)
+            return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse)
         } else {
-            // if not, get the property from the network
-            const remoteResponse = getPropertyNetwork(oid, params.pid, params.oid)
-            if (remoteResponse.success) {
-                return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse.body)
-            } else {
-                return responseBuilder(HttpStatusCode.NOT_FOUND, res, remoteResponse.body)
-            }
+            return responseBuilder(HttpStatusCode.OK, res, null, localResponse.body)       
         }
     } catch (err: unknown) {
         const error = errorHandler(err)
@@ -90,21 +87,15 @@ export const putProperty: PutPropertyCtrl = async (req, res) => {
     const body = req.body
     const params = req.params
     try {
-        if (!body) {
-            return responseBuilder(HttpStatusCode.BAD_REQUEST, res, 'PUT requests requires a valid message to be sent...')
-        }
         // test localy if the client exists
-        const localResponse = await putPropertyLocaly(oid, params.pid, params.oid, body)
-        if (localResponse.success) {
-            return responseBuilder(HttpStatusCode.OK, res, JSON.stringify(localResponse.body))       
+        logger.debug(`PutProperty request OID:${params.oid} PID:${params.pid}`)
+        const localResponse = await putPropertyLocaly(oid , params.pid, params.oid, body)
+        if (!localResponse.success) {
+             // if not, get the property from the network
+             const remoteResponse = await putPropertyNetwork(oid, params.pid, params.oid, body)
+            return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse)
         } else {
-            // if not, get the property from the network
-            const remoteResponse = putPropertyNetwork(oid, params.pid, params.oid, body)
-            if (remoteResponse.success) {
-                return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse.body)
-            } else {
-                return responseBuilder(HttpStatusCode.NOT_FOUND, res, remoteResponse.body)
-            }
+            return responseBuilder(HttpStatusCode.OK, res, JSON.stringify(localResponse.body))       
         }
     } catch (err: unknown) {
         const error = errorHandler(err)
@@ -227,10 +218,39 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
     try {
         // retrieve subscribers and send message to each one
         for (const subscriber of getSubscribers(oid, eid)) {
-            sendMessage(oid, subscriber, message, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT) // TBD: RequestOperation type ??
+            try {
+                const response = sendEvent(subscriber, eid, message)
+                if (!response.success) {
+                    sendEventNetwork(subscriber, eid, oid, message)
+                }
+            } catch (error) {
+                logger.error('Error sending event to ' + subscriber + ': ' + error)
+            }
         }
         // TBD: Do we need to wait for responses?
         return responseBuilder(HttpStatusCode.OK, res, null, 'Channel with EID: ' + eid + 'successfully removed')
+    } catch (err: unknown) {
+        const error = errorHandler(err)
+        logger.error(error.message)
+        return responseBuilder(error.status, res, error.message)
+    }
+}
+
+type EventChannelStatusCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
+
+export const eventChannelStatus: EventChannelStatusCtrl = async (req, res) => {
+    const { oid, password } = res.locals
+    const params = req.params
+    try {  
+        logger.debug('Event channel status for object ' + params.oid + ' channel ' + params.eid)
+        const response = channelStatus(params.oid, params.eid, oid)
+        if (response.success) {
+            return responseBuilder(HttpStatusCode.OK, res, null, response.body.message)
+        } else {
+            // network
+            const networkResponse = await getEventChannelStatusNetwork(params.oid, params.eid, oid)
+            return responseBuilder(HttpStatusCode.OK, res, null, networkResponse.message)
+        }
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)

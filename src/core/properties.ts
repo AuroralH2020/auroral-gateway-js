@@ -12,19 +12,17 @@ interface localResponse {
 // ONLY LOCAL
 
 export async function getPropertyLocaly(sourceOid: string, pid: string, oid: string): Promise<localResponse> {
-    const xmppClient = clients.get(oid)
-    if (!xmppClient) {
+    if (!clients.has(oid)) {
+        console.log('Not found localy: ' + oid)
         return { success: false, body: {} }
+    } else {
+        const response = await agent.getProperty(sourceOid, pid, oid)
+        return { success: true, body: response.message }
     }
-    const response = await agent.getProperty(sourceOid, pid, oid)
-    if (response.error) {
-        return { success: false, body: {} }
-    }
-    return { success: true, body: response }
 }
 
 export async function putPropertyLocaly(sourceOid: string, pid: string, oid: string, body: JsonType): Promise<localResponse> {
-    const xmppClient = clients.get(oid)
+    const xmppClient = clients.get(sourceOid)
     if (!xmppClient) {
         return { success: false, body: {} }
     }

@@ -1,8 +1,5 @@
-import fs from 'fs'
 import { HttpStatusCode , logger , MyError } from '../utils'
-import { Config } from '../config'
 import { clients } from './xmpp'
-import { EventHandler } from './event.class'
 import { JsonType } from '../types/misc-types'
 import { MessageType, RequestOperation } from '../types/xmpp-types'
 
@@ -29,13 +26,22 @@ import { MessageType, RequestOperation } from '../types/xmpp-types'
         }
     })
 }
-export function getPropertyNetwork(sourceOid: string, pid: string, requesterOid: string): JsonType {
+/**
+ * Get property from the network
+ *  If it does not exist, throws error
+ * @param sourceOid 
+ * @param pid 
+ * @param oid 
+ * @returns 
+ */
+export function getPropertyNetwork(sourceOid: string, pid: string, oid: string): JsonType {
     return new Promise((resolve, reject) => {
-        const xmppClient = clients.get(requesterOid)
+        const xmppClient = clients.get(sourceOid)
         if (xmppClient) {
-            xmppClient.sendStanza(sourceOid, null, RequestOperation.GETPROPERTYVALUE, MessageType.REQUEST, { pid }, {}, (err: boolean, message: JsonType) => {
+            logger.debug('Sending get property request to ' + oid + ':' + pid)
+            xmppClient.sendStanza(oid, null, RequestOperation.GETPROPERTYVALUE, MessageType.REQUEST, { pid }, {}, (err: boolean, message: JsonType) => {
                 if (err) {
-                    reject(message)
+                    reject(new MyError(message.error, message.status))
                 }
                 resolve(message)
             })
@@ -45,11 +51,20 @@ export function getPropertyNetwork(sourceOid: string, pid: string, requesterOid:
     })
 }
 
-export function putPropertyNetwork(sourceOid: string, pid: string, requesterOid: string, body: JsonType): JsonType {
+/**
+ *  Put property on the network object
+ *  If it does not exist, throws error
+ * @param sourceOid 
+ * @param pid 
+ * @param oid 
+ * @param body 
+ * @returns 
+ */
+export function putPropertyNetwork(sourceOid: string, pid: string, oid: string, body: JsonType): JsonType {
     return new Promise((resolve, reject) => {
-        const xmppClient = clients.get(requesterOid)
+        const xmppClient = clients.get(sourceOid)
         if (xmppClient) {
-            xmppClient.sendStanza(sourceOid, body, RequestOperation.GETPROPERTYVALUE, MessageType.REQUEST, { pid }, {}, (err: boolean, message: JsonType) => {
+            xmppClient.sendStanza(oid, body, RequestOperation.SETPROPERTYVALUE, MessageType.REQUEST, { pid }, {}, (err: boolean, message: JsonType) => {
                 if (err) {
                     reject(message)
                 }
@@ -79,6 +94,38 @@ export function putPropertyNetwork(sourceOid: string, pid: string, requesterOid:
                 resolve(message)
             })
             logger.info('Remove subscriber ' + subscriberOid + ' from event channel ' + oid + ':' + eid)
+        } else {
+            throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
+        }
+    })
+}
+
+export function getEventChannelStatusNetwork(oid: string, eid: string, sourceOid: string): Promise<{ message: string }> {
+    return new Promise((resolve, reject) => {
+        const xmppClient = clients.get(sourceOid)
+        if (xmppClient) {
+            xmppClient.sendStanza(oid, null, RequestOperation.GETEVENTCHANNELSTATUS, MessageType.REQUEST, { eid }, {}, (err: boolean, message: JsonType) => {
+                if (err) {
+                    reject(new MyError(message.error, message.status))
+                }
+                resolve(message as { message: string })
+            })
+        } else {
+            throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
+        }
+    })
+}
+
+export function sendEventNetwork(oid: string, eid: string, sourceOid: string, body: JsonType) {
+    return new Promise((resolve, reject) => {
+        const xmppClient = clients.get(oid)
+        if (xmppClient) {
+            xmppClient.sendStanza(oid, body, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT, { eid }, {}, (err: boolean, message: JsonType) => {
+                if (err) {
+                    reject(new MyError(message.error, message.status))
+                }
+                resolve(message)
+            })
         } else {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
         }
