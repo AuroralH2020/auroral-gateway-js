@@ -228,7 +228,7 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
             }
         }
         // TBD: Do we need to wait for responses?
-        return responseBuilder(HttpStatusCode.OK, res, null, 'Channel with EID: ' + eid + 'successfully removed')
+        return responseBuilder(HttpStatusCode.OK, res, null, 'Event distributed to N subscribers')
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)

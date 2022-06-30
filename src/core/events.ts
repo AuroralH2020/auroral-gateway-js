@@ -182,22 +182,3 @@ export function sendEvent(oid: string, eid: string, body: JsonType): localRespon
         return { success: false, body: {} }
     }
 }
-
-// /**
-//  * Send event to all subscribers of the event channel for the given oid + eid
-//  * @param oid - object id
-//  * @param eid - event id
-//  * @param message - message to be sent to subscribers
-//  */
-// export async function sendEvent(oid: string, eid: string, bodyMessage: string) {
-//     if (eventHandlers.has(oid + eid)) {
-//         const eventHandler = eventHandlers.get(oid + eid)!
-//         logger.debug('Sending event  to event channel ' + oid + ':' + eid)
-//         for (const subscriberOid of eventHandler.getSubscribers()) {
-//             logger.debug('TODO: Sending event to subscriber ' + subscriberOid)
-//             // TODO: Send event to subscribers
-//         }
-//     } else {
-//         logger.warn('Event channel not found')
-//     }
-// }

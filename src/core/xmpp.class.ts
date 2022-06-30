@@ -85,28 +85,34 @@ export class XMPP {
     await this.client.send(message)
     logger.debug('Message sent by ' + this.oid + ' through XMPP network... Destination ' + destinationOid)
 
-    // Waiting for event response or timeout
-    const timeout = setTimeout(
-      (error, message) => {
+    if (messageType === MessageType.EVENT) {
+      // IN CASE OF EVENT -- If ACK wait / If NO ACK return inmediately
+      // @TBD Control case event has ACK
+      callback(false, {})
+    } else {
+      // IN CASE OF REQUEST -- Waiting for event response or timeout
+      const timeout = setTimeout(
+        (error, message) => {
+          this.msgEvents.removeAllListeners(String(requestId))
+          callback(error, message)
+        }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (10s)', status: HttpStatusCode.REQUEST_TIMEOUT }, callback
+      )
+      this.msgTimeouts.set(requestId, timeout) // Add to timeout list
+      this.msgEvents.on(String(requestId), (data) => {
+        // Cancel timeout
+        const timeoutToCancel = this.msgTimeouts.get(requestId)
+        clearTimeout(timeoutToCancel)
+        this.msgTimeouts.delete(requestId)
+        // Remove listener
         this.msgEvents.removeAllListeners(String(requestId))
-        callback(error, message)
-      }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (10s)', status: HttpStatusCode.REQUEST_TIMEOUT }, callback
-    )
-    this.msgTimeouts.set(requestId, timeout) // Add to timeout list
-    this.msgEvents.on(String(requestId), (data) => {
-      // Cancel timeout
-      const timeoutToCancel = this.msgTimeouts.get(requestId)
-      clearTimeout(timeoutToCancel)
-      this.msgTimeouts.delete(requestId)
-      // Remove listener
-      this.msgEvents.removeAllListeners(String(requestId))
-      if (data.error) {
-        // Throw error
-         callback(true, data)
-      }
-      // Return response
-      callback(false, data)
-    })
+        if (data.error) {
+          // Throw error
+          callback(true, data)
+        }
+        // Return response
+        callback(false, data)
+      })
+    }
   }
 
   // Return object roster
@@ -155,8 +161,8 @@ export class XMPP {
     await this.client.send(message)
   }
 
-  private async respondStanzaWithError (destinationOid: string, jid: string, requestId: number, requestOperation: number, errorMessage: string, statusCode: number) {
-    const payload: XMPPErrorMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, errorMessage , statusCode }
+  private async respondStanzaWithError(destinationOid: string, jid: string, requestId: number, requestOperation: number, errorMessage: string, statusCode: number) {
+    const payload: XMPPErrorMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, errorMessage, statusCode }
     const message = xml(
       'message',
       { type: 'error', to: jid },
@@ -165,54 +171,54 @@ export class XMPP {
     await this.client.send(message)
   }
 
-// Events
+  // Events
 
-public addEventChannel(eid: string, eventChannel: { oid: string, eid: string, _subscribers: Set<string> } | null = null) {
-  if (this.eventChannels.has(eid)) {
-    logger.warn('Event channel already exists for oid ' + this.oid + ' and eid ' + eid)
-  } else {
-    logger.info('Creating event channel ' + this.oid + ':' + eid)
-    if (eventChannel) {
-      this.eventChannels.set(eid, new EventHandler(eventChannel.oid, eventChannel.eid, eventChannel._subscribers))
+  public addEventChannel(eid: string, eventChannel: { oid: string, eid: string, _subscribers: Set<string> } | null = null) {
+    if (this.eventChannels.has(eid)) {
+      logger.warn('Event channel already exists for oid ' + this.oid + ' and eid ' + eid)
     } else {
-      this.eventChannels.set(eid, new EventHandler(this.oid, eid))
+      logger.info('Creating event channel ' + this.oid + ':' + eid)
+      if (eventChannel) {
+        this.eventChannels.set(eid, new EventHandler(eventChannel.oid, eventChannel.eid, eventChannel._subscribers))
+      } else {
+        this.eventChannels.set(eid, new EventHandler(this.oid, eid))
+      }
     }
   }
-}
 
-public removeEventChannel(eid: string) {
-  if (this.eventChannels.has(eid)) {
-    logger.info('Removing event channel with oid ' + this.oid + ' and eid ' + eid)
-    this.eventChannels.delete(eid)
-  } else {
-    logger.warn('Event channel ' + this.oid + ':' + eid + ' does not exist')
+  public removeEventChannel(eid: string) {
+    if (this.eventChannels.has(eid)) {
+      logger.info('Removing event channel with oid ' + this.oid + ' and eid ' + eid)
+      this.eventChannels.delete(eid)
+    } else {
+      logger.warn('Event channel ' + this.oid + ':' + eid + ' does not exist')
+    }
   }
-}
 
-/**
- * Get one event channel handler class specified by eid
- */
-public getEventChannel(eid: string) {
-  const eventHandler = this.eventChannels.get(eid)
-  if (eventHandler) {
-    return eventHandler
-  } else {
-    throw new MyError('Event channel ' + this.oid + ':' + eid + ' does not exist', HttpStatusCode.NOT_FOUND)
+  /**
+   * Get one event channel handler class specified by eid
+   */
+  public getEventChannel(eid: string) {
+    const eventHandler = this.eventChannels.get(eid)
+    if (eventHandler) {
+      return eventHandler
+    } else {
+      throw new MyError('Event channel ' + this.oid + ':' + eid + ' does not exist', HttpStatusCode.NOT_FOUND)
+    }
   }
-}
 
-/**
- * Get all event channels list or only one class specified by eid
- * Returns the values (EventHandler objects) or the keys (EID names)
- * If values is true === EventHandlers
- */
-public getAllEventChannels(values: boolean = true) {
-  if (values) {
-    return Array.from(this.eventChannels.values())
-  } else {
-    return Array.from(this.eventChannels.keys())
+  /**
+   * Get all event channels list or only one class specified by eid
+   * Returns the values (EventHandler objects) or the keys (EID names)
+   * If values is true === EventHandlers
+   */
+  public getAllEventChannels(values: boolean = true) {
+    if (values) {
+      return Array.from(this.eventChannels.values())
+    } else {
+      return Array.from(this.eventChannels.keys())
+    }
   }
-}
   // Event handlers
 
   private onError(err: unknown) {
@@ -279,7 +285,7 @@ public getAllEventChannels(values: boolean = true) {
           } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Returning network message with error... ' + error.message)
-            await this.respondStanzaWithError(body.sourceOid, from, body.requestId, body.requestOperation, error.message, error.status)
+            // await this.respondStanzaWithError(body.sourceOid, from, body.requestId, body.requestOperation, error.message, error.status)
           }
         } else {
           // If it is a response, emit event with requestId to close the HTTP connection
@@ -302,10 +308,10 @@ public getAllEventChannels(values: boolean = true) {
     switch (key) {
       case RequestOperation.GETPROPERTYVALUE:
         return (await agent.getProperty(options.originOid, options.pid, this.oid)).message
-        // Retrieve value and return
+      // Retrieve value and return
       case RequestOperation.SETPROPERTYVALUE:
         return (await agent.putProperty(options.originOid, options.pid, this.oid, options.body!)).message
-        // Retrieve value and return
+      // Retrieve value and return
       case RequestOperation.SUBSCRIBETOEVENTCHANNEL:
         // Retrieve value and return
         return this.processChannelSubscription(options as SubscribeChannelOpt)
@@ -320,7 +326,7 @@ public getAllEventChannels(values: boolean = true) {
     }
   }
 
-  private processChannelSubscription (options: SubscribeChannelOpt) {
+  private processChannelSubscription(options: SubscribeChannelOpt) {
     const eventHandler = this.eventChannels.get(options.eid)
     if (eventHandler) {
       eventHandler.addSubscriber(options.originOid)
@@ -331,7 +337,7 @@ public getAllEventChannels(values: boolean = true) {
     }
   }
 
-  private processChannelUnsubscription (options: SubscribeChannelOpt) {
+  private processChannelUnsubscription(options: SubscribeChannelOpt) {
     const eventHandler = this.eventChannels.get(options.eid)
     if (eventHandler) {
       eventHandler.removeSubscriber(options.originOid)
@@ -342,10 +348,10 @@ public getAllEventChannels(values: boolean = true) {
     }
   }
 
-  private processChannelStatus (options: SubscribeChannelOpt) {
+  private processChannelStatus(options: SubscribeChannelOpt) {
     const eventHandler = this.eventChannels.get(options.eid)
     if (eventHandler) {
-      return {  message: 'Channel is opened, there are ' + eventHandler.subscribers.size + ' subscribers' }
+      return { message: 'Channel is opened, there are ' + eventHandler.subscribers.size + ' subscribers' }
     } else {
       throw new MyError('Remote request failed: Event channel ' + options.eid + ' of object ' + this.oid + ' not found', HttpStatusCode.NOT_FOUND)
     }
