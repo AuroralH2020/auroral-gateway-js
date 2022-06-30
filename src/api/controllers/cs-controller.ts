@@ -7,7 +7,7 @@ import { responseBuilder } from '../../utils/response-builder'
 
 // Imports
 import { startXMPPClient, stopXMPPClients, getRoster, initialize, getObjectInfo } from '../../core/xmpp'
-import { createEventChannel, getSubscribers, removeEventChannel, getEventChannelsNames, addSubscriber, removeSubscriber, loadEventChannels, channelStatus, sendEvent } from '../../core/events'
+import { events } from '../../core/events'
 import { getPropertyNetwork, putPropertyNetwork, addSubscriberNetwork, removeSubscriberNetwork, getEventChannelStatusNetwork, sendEventNetwork, getObjectInfoNetwork } from '../../core/networkMessages'
 import { JsonType } from '../../types/misc-types'
 import { getPropertyLocaly, putPropertyLocaly } from '../../core/properties'
@@ -25,7 +25,7 @@ export const start: Ctrl = async (req, res) => {
     try {
         initialize(oid, password)
         await startXMPPClient(oid)
-        loadEventChannels()
+        events.loadEventChannelsFromFile()
         return responseBuilder(HttpStatusCode.OK, res, null, null)
 	} catch (err) {
         const error = errorHandler(err)
@@ -140,7 +140,7 @@ export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) =
     const { oid, password } = res.locals
     const { eid } = req.params
     try {
-        createEventChannel(oid, eid)
+        events.createEventChannel(oid, eid)
         return responseBuilder(HttpStatusCode.OK, res, null)
     } catch (err: unknown) {
         const error = errorHandler(err)
@@ -155,7 +155,7 @@ export const dectivateEventChannel: DectivateEventChannelCtrl = async (req, res)
     const { oid, password } = res.locals
     const { eid } = req.params
     try {
-        removeEventChannel(oid, eid)
+        events.removeEventChannel(oid, eid)
         return responseBuilder(HttpStatusCode.OK, res, null)
     } catch (err: unknown) {
         const error = errorHandler(err)
@@ -170,7 +170,7 @@ export const getEventChannels: GetEventChannelsCtrl = async (req, res) => {
     const { oid, password } = res.locals
     const params = req.params
     try {
-        const eChannels = getEventChannelsNames(params.oid)
+        const eChannels = events.getEventChannelsNames(params.oid)
         return responseBuilder(HttpStatusCode.OK, res, null, eChannels)
     } catch (err: unknown) {
         const error = errorHandler(err)
@@ -185,7 +185,7 @@ export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, 
     const { oid, password } = res.locals
     const params = req.params
     try {
-        const response = addSubscriber(params.oid, params.eid, oid)
+        const response = events.addSubscriber(params.oid, params.eid, oid)
         if (!response.success) {
             const networkResponse = await addSubscriberNetwork(params.oid, params.eid, oid)
             return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' subscribed channel ' + params.eid + ' of remote object ' + params.oid)
@@ -205,7 +205,7 @@ export const unsubscribeFromEventChannel: UnsubscribeFromEventChannelCtrl = asyn
     const { oid, password } = res.locals
     const params = req.params
     try {
-        const response = await removeSubscriber(params.oid, params.eid, oid)
+        const response = await events.removeSubscriber(params.oid, params.eid, oid)
         if (!response.success) {
             const networkResponse = await removeSubscriberNetwork(params.oid, params.eid, oid)
             return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' unsusbcribed channel ' + params.eid + ' of remote object ' + params.oid)
@@ -227,9 +227,9 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
     const message = req.body
     try {
         // retrieve subscribers and send message to each one
-        for (const subscriber of getSubscribers(oid, eid)) {
+        for (const subscriber of events.getSubscribers(oid, eid)) {
             try {
-                const response = sendEvent(subscriber, eid, message)
+                const response = events.sendEvent(subscriber, eid, message)
                 if (!response.success) {
                     sendEventNetwork(subscriber, eid, oid, message)
                 }
@@ -253,7 +253,7 @@ export const eventChannelStatus: EventChannelStatusCtrl = async (req, res) => {
     const params = req.params
     try {  
         logger.debug('Event channel status for object ' + params.oid + ' channel ' + params.eid)
-        const response = channelStatus(params.oid, params.eid, oid)
+        const response = events.channelStatus(params.oid, params.eid, oid)
         if (response.success) {
             return responseBuilder(HttpStatusCode.OK, res, null, response.body.message)
         } else {

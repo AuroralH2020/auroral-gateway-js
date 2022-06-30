@@ -9,7 +9,6 @@ import { responseBuilder } from '../../utils/response-builder'
 import {  GtwRegistrationResponse, GtwUpdateResponse } from '../../types/gateway-types'
 import { nm } from '../../connectors/nm-connector'
 import { JsonType } from '../../types/misc-types'
-import { createEventChannel } from '../../core/events'
 
 // Controllers
 
@@ -25,7 +24,7 @@ export const dummy: DummyCtrl = async (req, res) => {
 	}
 }
 
-type getRegistrationsCtrl = expressTypes.Controller<{ agid: string }, {}, {}, JsonType, {}>
+type getRegistrationsCtrl = expressTypes.Controller<{ agid: string }, {}, {}, string[], {}>
 
 export const getRegistrations: getRegistrationsCtrl = async (req, res) => {
         try {

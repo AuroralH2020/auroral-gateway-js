@@ -4,7 +4,8 @@
  */
  import { expressTypes } from '../types/index'
  import { responseBuilder } from '../utils/response-builder'
- import { HttpStatusCode } from '../utils/http-status-codes'
+import { isItemRegistered } from '../core/registrations'
+import { HttpStatusCode, errorHandler, logger } from '../utils'
 
  type basicAuthCtrl = expressTypes.Controller<{}, {}, {}, void, { oid: string, password: string }>
  
@@ -25,10 +26,24 @@
             return responseBuilder(HttpStatusCode.UNAUTHORIZED, res, 'Missing Credentials', null)
         }
 
-        // Attach oid and password to locale
-        res.locals.oid = oid
-        res.locals.password = password
+         // Attach oid and password to locale
+         res.locals.oid = oid
+         res.locals.password = password
 
-        next()
+        // Check if item is registered locally
+        isItemRegistered(oid).then(result => {
+            if (!result) {
+                // TODO enable check
+                // return responseBuilder(HttpStatusCode.UNAUTHORIZED, res, 'Items not registered under this gateway', null)
+                logger.warn(`Item ${oid} not registered under this gateway`)
+                next()
+            } else {
+                next()
+            }
+        }).catch(err => {
+            const error = errorHandler(err)
+            logger.error(error.message)
+            return responseBuilder(HttpStatusCode.INTERNAL_SERVER_ERROR, res, error.message)
+        })
      } as basicAuthCtrl
  } 

@@ -4,9 +4,9 @@ import crypto from 'crypto'
 import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt, PropertiesOpt } from '../types/xmpp-types'
 import { HttpStatusCode, logger, errorHandler, MyError } from '../utils'
 import { Config } from '../config'
-import { EventHandler } from './event.class'
 import { JsonType } from '../types/misc-types'
 import { agent } from '../connectors/agent-connector'
+import { events } from './events'
 
 export class XMPP {
 
@@ -18,7 +18,7 @@ export class XMPP {
   private rosterReloadTimer: NodeJS.Timer | undefined = undefined
   private msgTimeouts: Map<number, NodeJS.Timeout> = new Map<number, NodeJS.Timeout>() // Timers to timeout requests
   private msgEvents: EventEmmiter = new EventEmmiter() // Handles events inside this class
-  private eventChannels: Map<string, EventHandler> = new Map<string, EventHandler>()
+  // private eventChannels: Map<string, EventHandler> = new Map<string, EventHandler>()
   public client
 
   public constructor(oid: string, password: string) {
@@ -171,56 +171,6 @@ export class XMPP {
     await this.client.send(message)
   }
 
-  // Events
-
-  public addEventChannel(eid: string, eventChannel: { oid: string, eid: string, _subscribers: Set<string> } | null = null) {
-    if (this.eventChannels.has(eid)) {
-      logger.warn('Event channel already exists for oid ' + this.oid + ' and eid ' + eid)
-    } else {
-      logger.info('Creating event channel ' + this.oid + ':' + eid)
-      if (eventChannel) {
-        this.eventChannels.set(eid, new EventHandler(eventChannel.oid, eventChannel.eid, eventChannel._subscribers))
-      } else {
-        this.eventChannels.set(eid, new EventHandler(this.oid, eid))
-      }
-    }
-  }
-
-  public removeEventChannel(eid: string) {
-    if (this.eventChannels.has(eid)) {
-      logger.info('Removing event channel with oid ' + this.oid + ' and eid ' + eid)
-      this.eventChannels.delete(eid)
-    } else {
-      logger.warn('Event channel ' + this.oid + ':' + eid + ' does not exist')
-    }
-  }
-
-  /**
-   * Get one event channel handler class specified by eid
-   */
-  public getEventChannel(eid: string) {
-    const eventHandler = this.eventChannels.get(eid)
-    if (eventHandler) {
-      return eventHandler
-    } else {
-      throw new MyError('Event channel ' + this.oid + ':' + eid + ' does not exist', HttpStatusCode.NOT_FOUND)
-    }
-  }
-
-  /**
-   * Get all event channels list or only one class specified by eid
-   * Returns the values (EventHandler objects) or the keys (EID names)
-   * If values is true === EventHandlers
-   */
-  public getAllEventChannels(values: boolean = true) {
-    if (values) {
-      return Array.from(this.eventChannels.values())
-    } else {
-      return Array.from(this.eventChannels.keys())
-    }
-  }
-  // Event handlers
-
   private onError(err: unknown) {
     const error = errorHandler(err)
     logger.error(error.message)
@@ -317,34 +267,27 @@ export class XMPP {
   }
 
   private processChannelSubscription(options: SubscribeChannelOpt) {
-    const eventHandler = this.eventChannels.get(options.eid)
-    if (eventHandler) {
-      eventHandler.addSubscriber(options.originOid)
-      logger.info('New remote subscriber ' + options.originOid + ' added to channel ' + options.eid + ' of object ' + this.oid)
-      return ({ message: 'Object ' + options + ' subscribed channel ' + options.eid + ' of remote object ' + this.oid })
-    } else {
-      throw new MyError('Remote request failed: Event channel ' + options.eid + ' of object ' + this.oid + ' not found', HttpStatusCode.NOT_FOUND)
-    }
+      const response = events.addSubscriber(this.oid, options.eid, options.originOid)
+      if (!response.success) {
+        throw new MyError('Object not found', HttpStatusCode.BAD_REQUEST)
+      }
+      return ({ ...response.body })
   }
 
   private processChannelUnsubscription(options: SubscribeChannelOpt) {
-    const eventHandler = this.eventChannels.get(options.eid)
-    if (eventHandler) {
-      eventHandler.removeSubscriber(options.originOid)
-      logger.info('Remote subscriber ' + options.originOid + ' removed from channel ' + options.eid + ' of object ' + this.oid)
-      return ({ message: 'Object ' + options + ' unsubscribed channel ' + options.eid + ' of remote object ' + this.oid })
-    } else {
-      throw new MyError('Remote request failed: Event channel ' + options.eid + ' of object ' + this.oid + ' not found', HttpStatusCode.NOT_FOUND)
+    const response = events.removeSubscriber(this.oid, options.eid, options.originOid)
+    if (!response.success) {
+      throw new MyError('Object not found', HttpStatusCode.BAD_REQUEST)
     }
+    return ({ ...response.body })
   }
 
   private processChannelStatus(options: SubscribeChannelOpt) {
-    const eventHandler = this.eventChannels.get(options.eid)
-    if (eventHandler) {
-      return { message: 'Channel is opened, there are ' + eventHandler.subscribers.size + ' subscribers' }
-    } else {
-      throw new MyError('Remote request failed: Event channel ' + options.eid + ' of object ' + this.oid + ' not found', HttpStatusCode.NOT_FOUND)
+    const response =  events.channelStatus(this.oid, options.eid, options.originOid)
+    if (!response.success) {
+      throw new MyError('Object not found', HttpStatusCode.BAD_REQUEST)
     }
+    return { ...response.body }
   }
 
   private async getSemanticInfo(options: Options) {

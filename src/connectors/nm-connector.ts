@@ -111,7 +111,7 @@ export const nm = {
      * @param agid 
      * @returns jsonType
      */
-    getAgentItems: async function(agid: string): Promise<GenericResponse<JsonType>> {
+    getAgentItems: async function(agid: string): Promise<GenericResponse<string[]>> {
             return request(`agent/${agid}/items`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })       
     },
     /**
