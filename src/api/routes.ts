@@ -49,6 +49,7 @@ ApiRouter
 // DISCOVERY
 .get('/objects', basicAuth(), cs_ctrl.roster)  // discovery gateway roster
 .get('/discovery/nodes/organisation', nm_ctrl.getNodesInMyOrganisation) // organisationNodes
+.get('/discovery/nodes/organisation/:cid', nm_ctrl.getNodesInOrganisation) 
 .get('/discovery/nodes/community/:commid', nm_ctrl.getNodesInCommunity) // communityNodes
 .get('/discovery/items/organisation', nm_ctrl.getItemsInMyOrganisation) // organisationItems
 .get('/discovery/items/contract/:ctid', nm_ctrl.getItemsInContract) // contractItems
@@ -62,8 +63,5 @@ ApiRouter
 .get('/security/privacy', nm_ctrl.getAgentPrivacy) // getItemsPrivacy
 .get('/security/contracts/:cid', nm_ctrl.getContractedItemsByCid) // getContracts
 
-// UNUSED
-// .get('/discovery/nodes/organisation/:cid', ctrl.dummy) // Implement
-// .get('/security/relationship/:rid', nm_ctrl.dummy) // Implement
 
 export { ApiRouter }

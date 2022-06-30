@@ -164,8 +164,16 @@ export const nm = {
      * Get nodes in my organisation
      * @returns jsonType
      */
-    getNodesInMyOrganisation: async function(): Promise<GenericResponse<JsonType>> {
+     getNodesInMyOrganisation: async function(): Promise<GenericResponse<JsonType>> {
         return request('discovery/nodes/organisation', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
+    },
+    /**
+     * Get nodes in  organisation
+     * @param cid
+     * @returns jsonType
+     */
+     getNodesMyOrganisation: async function(cid: string): Promise<GenericResponse<JsonType>> {
+        return request('discovery/nodes/organisation/' + cid, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
     },
     /**
      * Get nodes at given organisation

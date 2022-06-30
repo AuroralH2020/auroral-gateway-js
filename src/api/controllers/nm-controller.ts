@@ -94,6 +94,20 @@ export const getNodesInMyOrganisation: getNodesInMyOrganisationCtrl = async (req
         }
 }
 
+type getNodesInOrganisationCtrl = expressTypes.Controller<{cid: string}, {}, {}, GtwUpdateResponse[], {}>
+
+export const getNodesInOrganisation: getNodesInOrganisationCtrl = async (req, res) => {
+        const { cid } = req.params
+        try {
+                const response = await nm.getNodesInMyOrganisation()
+                return responseBuilder(HttpStatusCode.OK, res, null, response.message)
+        } catch (err) {
+                const error = errorHandler(err)
+                logger.error(error.message)
+                return responseBuilder(error.status, res, error.message)
+        }
+}
+
 type getNodesInCommunityCtrl = expressTypes.Controller<{ commid: string }, {}, {}, GtwUpdateResponse[], {}>
 export const getNodesInCommunity: getNodesInCommunityCtrl = async (req, res) => {
         const { commid } = req.params
