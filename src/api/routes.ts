@@ -63,5 +63,4 @@ ApiRouter
 .get('/security/privacy', nm_ctrl.getAgentPrivacy) // getItemsPrivacy
 .get('/security/contracts/:cid', nm_ctrl.getContractedItemsByCid) // getContracts
 
-
 export { ApiRouter }

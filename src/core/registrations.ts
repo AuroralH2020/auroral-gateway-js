@@ -15,6 +15,9 @@ class RegistrationsClass {
         await this.updateLocalRegistrations()
     }
 
+    public async update() {
+        await this.updateLocalRegistrations()
+    }
     /**
      * Retrieves from NM all registered items under my Node
      * @returns registrations array

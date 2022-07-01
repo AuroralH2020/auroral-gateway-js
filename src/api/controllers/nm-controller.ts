@@ -8,7 +8,7 @@ import { responseBuilder } from '../../utils/response-builder'
 import {  GtwUpdateResponse } from '../../types/gateway-types'
 import { nm } from '../../connectors/nm-connector'
 import { JsonType } from '../../types/misc-types'
-import { updateLocalRegistrations } from '../../core/registrations'
+import { Registrations } from '../../core/registrations'
 
 // Controllers
 
@@ -43,7 +43,7 @@ export const postRegistrations: postRegistrationsCtrl = async (req, res) => {
         try {
                 const response = await nm.registerItems(agid, items)
                 // Update local registrations array
-                await updateLocalRegistrations()
+                await Registrations.update()
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)
 	} catch (err) {
                 const error = errorHandler(err)
@@ -72,7 +72,7 @@ export const removeRegistration: removeRegistrationCtrl = async (req, res) => {
         try {
                 const response = await nm.removeItems(agid, oids)
                 // Update local registrations array
-                await updateLocalRegistrations()
+                await Registrations.update()
                 return responseBuilder(HttpStatusCode.OK, res, null,  response.message)
         } catch (err) {
         const error = errorHandler(err)
