@@ -2,41 +2,43 @@ import { Config } from '../config'
 import { nm } from '../connectors/nm-connector'
 import { logger, errorHandler } from '../utils'
 
-let registration = undefined as string[] | undefined
+class RegistrationsClass {
+    private registrations: string[] = []
+    private registrationsTimer: NodeJS.Timer | undefined = undefined
 
-/**
- * Retrieves all oids registered under my agent
- * if not yet initialised, retrieve them from NM automatically
- * @returns registrations array
- */
-export const getRegistrations = async function (): Promise<string[]> {
-    if (registration) {
-        return registration
-    } else {
-        await updateLocalRegistrations()
-        return registration ? registration : []
+    public constructor () {
+        this.registrationsTimer = setInterval(this.updateLocalRegistrations, Number(Config.TOKEN.REFRESH))   
     }
-}
 
-/**
- * Updates the registrations array from NM
- */
-export const updateLocalRegistrations = async function () {
-    try {
-        const response = await nm.getAgentItems(Config.GATEWAY.ID)
-        registration = response.message
-    } catch (err: unknown) {
-        const error = errorHandler(err)
-        logger.error('Updating registrations failed...' + error.message)
+    // Preloads registrations info
+    public async start () {
+        await this.updateLocalRegistrations()
     }
-}
 
-/**
- * Check if the given oid is registered under my agent
- * @param oid Items oid
- * @returns true/false if the oid is registered
- */
-export const isItemRegistered = async function (oid: string): Promise<boolean> {
-    const registrations = await getRegistrations()
-    return registrations.includes(oid)
-}
+    /**
+     * Retrieves from NM all registered items under my Node
+     * @returns registrations array
+     */
+    private async updateLocalRegistrations () {
+        try {
+            const response = await nm.getAgentItems(Config.GATEWAY.ID)
+            logger.info('Updating registrations information...')
+            this.registrations = response.message
+        } catch (err: unknown) {
+            const error = errorHandler(err)
+            logger.error('Updating registrations failed...' + error.message)
+        }
+    }
+
+    /**
+     * Check if the given oid is registered under my agent
+     * @param oid Items oid
+     * @returns true/false if the oid is registered
+     */
+    public async isItemRegistered (oid: string): Promise<boolean> {
+        return this.registrations.includes(oid)
+    }
+
+ }
+
+ export const Registrations = new RegistrationsClass()

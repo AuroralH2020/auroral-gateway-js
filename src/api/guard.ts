@@ -4,7 +4,7 @@
  */
  import { expressTypes } from '../types/index'
  import { responseBuilder } from '../utils/response-builder'
-import { isItemRegistered } from '../core/registrations'
+import { Registrations } from '../core/registrations'
 import { HttpStatusCode, errorHandler, logger } from '../utils'
 
  type basicAuthCtrl = expressTypes.Controller<{}, {}, {}, void, { oid: string, password: string }>
@@ -31,7 +31,7 @@ import { HttpStatusCode, errorHandler, logger } from '../utils'
          res.locals.password = password
 
         // Check if item is registered locally
-        isItemRegistered(oid).then(result => {
+        Registrations.isItemRegistered(oid).then(result => {
             if (!result) {
                 // TODO enable check
                 // return responseBuilder(HttpStatusCode.UNAUTHORIZED, res, 'Items not registered under this gateway', null)

@@ -7,6 +7,7 @@ import { Token } from './core/security'
 import { nm } from './connectors/nm-connector'
 import { logger, errorHandler as eH } from './utils'
 import { events } from './core/events'
+import { Registrations } from './core/registrations'
 
 /**
  * Error Handler. Provides full stack - only in dev
@@ -29,6 +30,7 @@ async function bootstrap () {
     await initialize(Config.GATEWAY.ID, Config.GATEWAY.PASSWORD)
     await startXMPPClient(Config.GATEWAY.ID)
     events.loadEventChannelsFromFile()
+    await Registrations.start()
     logger.info('##############################################')
     logger.info('##############################################')
   } catch (err: unknown) {
