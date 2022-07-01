@@ -1,7 +1,7 @@
 import { client, xml } from '@xmpp/client'
 import EventEmmiter from 'node:events'
 import crypto from 'crypto'
-import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt, PropertiesOpt } from '../types/xmpp-types'
+import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt, PropertiesOpt, NotificationOpt } from '../types/xmpp-types'
 import { HttpStatusCode, logger, errorHandler, MyError } from '../utils'
 import { Config } from '../config'
 import { JsonType } from '../types/misc-types'
@@ -261,10 +261,22 @@ export class XMPP {
         return this.processChannelStatus(options as SubscribeChannelOpt)
       case RequestOperation.GETTHINGDESCRIPTION:
         return this.getSemanticInfo(options)
+      case RequestOperation.SENDNOTIFICATION:
+          return this.processNotification(options as NotificationOpt)
       default:
         return null
     }
   }
+
+  private async processNotification(options: NotificationOpt) {
+    try {
+      await agent.notify(Config.GATEWAY.ID, options.originOid, options.body ? options.body : {})
+    } catch (err) {
+      const error = errorHandler(err)
+      logger.warn('Notification error: ' +  error.message)
+    }
+    return ({ message: 'Notification sent' })
+}
 
   private processChannelSubscription(options: SubscribeChannelOpt) {
       const response = events.addSubscriber(this.oid, options.eid, options.originOid)

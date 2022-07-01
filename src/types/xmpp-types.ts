@@ -65,6 +65,10 @@ export interface Options {
   export interface PropertiesOpt extends Options {
     pid: string
   }
+
+  export interface NotificationOpt extends Options {
+    nid: string
+  }
   
 //   export interface OptionsAction extends Options {
 //     aid: string
