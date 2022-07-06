@@ -212,7 +212,7 @@ class Events {
                 const oidEvenChannels = eventChannel.eventChannels as { eid: string, subscribers: string[]}[]
                 const secondLevelMap: Map <string, EventHandler> = new Map() 
                 for (const event of oidEvenChannels) {
-                    const eid = event.eid as string
+                    const eid = event.eid 
                     const subscribers = event.subscribers 
                     secondLevelMap.set(eid, new EventHandler(oid, eid, subscribers))
                 }

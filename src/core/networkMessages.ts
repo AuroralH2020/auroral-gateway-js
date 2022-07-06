@@ -10,7 +10,7 @@ import { MessageType, RequestOperation } from '../types/xmpp-types'
  * @param eid - event id
  * @param subscriberOid - subscriber object id
  */
- export function addSubscriberNetwork(oid: string, eid: string, subscriberOid: string) {
+ export function addSubscriberNetwork(oid: string, eid: string, subscriberOid: string): Promise<JsonType> {
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(subscriberOid)
         if (xmppClient) {
@@ -34,7 +34,7 @@ import { MessageType, RequestOperation } from '../types/xmpp-types'
  * @param oid 
  * @returns 
  */
-export function getPropertyNetwork(sourceOid: string, pid: string, oid: string): JsonType {
+export function getPropertyNetwork(sourceOid: string, pid: string, oid: string): Promise<JsonType> {
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(sourceOid)
         if (xmppClient) {
@@ -60,7 +60,7 @@ export function getPropertyNetwork(sourceOid: string, pid: string, oid: string):
  * @param body 
  * @returns 
  */
-export function putPropertyNetwork(sourceOid: string, pid: string, oid: string, body: JsonType): JsonType {
+export function putPropertyNetwork(sourceOid: string, pid: string, oid: string, body: JsonType): Promise<JsonType> {
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(sourceOid)
         if (xmppClient) {
@@ -83,7 +83,7 @@ export function putPropertyNetwork(sourceOid: string, pid: string, oid: string, 
  * @param eid - event id
  * @param subscriberOid - subscriber object id
  */
- export function removeSubscriberNetwork(oid: string, eid: string, subscriberOid: string) {
+ export function removeSubscriberNetwork(oid: string, eid: string, subscriberOid: string): Promise<JsonType> {
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(subscriberOid)
         if (xmppClient) {
@@ -116,7 +116,7 @@ export function getEventChannelStatusNetwork(oid: string, eid: string, sourceOid
     })
 }
 
-export function sendEventNetwork(oid: string, eid: string, sourceOid: string, body: JsonType) {
+export function sendEventNetwork(oid: string, eid: string, sourceOid: string, body: JsonType): Promise<JsonType> {
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(sourceOid)
         if (xmppClient) {

@@ -194,55 +194,57 @@ export class XMPP {
   }
 
   private async onStanza(stanza: any) {
-    if (stanza.is('message')) {
-      const { _to, from, type } = stanza.attrs as { _to: string, from: string, type: string }
-      if (type === 'error') {
-        logger.debug(this.oid + ' receiving error response...')
-        // logger.debug({ to, from })
-        const body = JSON.parse(stanza.getChild('error').text())
-        this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
-      } else if (type === 'chat') {
-        const body: XMPPMessage = JSON.parse(stanza.getChild('body').text())
-        const jid = this.rosterItemsOid.get(body.sourceOid)?.jid
-        // Check if origin is in roster
-        if (!jid) {
-          logger.warn('Origin ' + body.sourceOid + ' is not in the roster of ' + this.oid + ' dropping message...')
-          return
-        }
-        // Check if attrs.from and body.originId are the same!!! Otherwise tampering attempt error
-        if (!from.includes(jid)) {
-          logger.error('Tampering attempt sourceOid: ' + jid + ' differs from real origin ' + from + '!!')
-          return
-        }
-        if (body.messageType === 1) {
-          // If it is a request, respond to it with the same requestId
-          logger.debug(this.oid + ' receiving remote message request...')
-          try {
-            const response = await this.processReq(body.requestOperation, { originOid: body.sourceOid, ...body.attributes, body: body.requestBody, ...body.parameters })
-            await this.respondStanza(body.sourceOid, from, body.requestId, body.requestOperation, response, {}, {})
-          } catch (err: unknown) {
-            const error = errorHandler(err)
-            logger.error('Returning network message with error... ' + error.message)
-            await this.respondStanzaWithError(body.sourceOid, from, body.requestId, body.requestOperation, error.message, error.status)
-          }
-        } else if (body.messageType === 2) {
-          // If it is a response, emit event with requestId to close the HTTP connection
-          logger.debug(this.oid + ' receiving message response...')
-          this.msgEvents.emit(String(body.requestId), body.responseBody)
-        } else if (body.messageType === 3) {
-          await this.processEvents(body)
-        } else {
-          // If it is a response, emit event with requestId to close the HTTP connection
-          logger.error('Unknown XMPP message type received...')
-          throw new MyError('Unknown XMPP message type received...', HttpStatusCode.BAD_REQUEST)
-        }
-      } else {
-        logger.debug('Gateway received unknown message type: ' + type)
-      }
-    } else {
+    if (!stanza.is('message')) {
       // I.e. presence, ...
       // logger.debug('Stanza received: Not message type')
       // logger.debug(stanza.toString())
+      return
+    }
+    const { _to, from, type } = stanza.attrs as { _to: string, from: string, type: string }
+    if (type === 'error') {
+      // ERROR
+      logger.debug(this.oid + ' receiving error response...')
+      // logger.debug({ to, from })
+      const body = JSON.parse(stanza.getChild('error').text())
+      this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
+    } else if (type === 'chat') {
+      // NORMAL CHAT MESSAGE
+      const body: XMPPMessage = JSON.parse(stanza.getChild('body').text())
+      const jid = this.rosterItemsOid.get(body.sourceOid)?.jid
+      // Check if origin is in roster
+      if (!jid) {
+        logger.warn('Origin ' + body.sourceOid + ' is not in the roster of ' + this.oid + ' dropping message...')
+        return
+      }
+      // Check if attrs.from and body.originId are the same!!! Otherwise tampering attempt error
+      if (!from.includes(jid)) {
+        logger.error('Tampering attempt sourceOid: ' + jid + ' differs from real origin ' + from + '!!')
+        return
+      }
+      if (body.messageType === MessageType.REQUEST) {
+        // If it is a request, respond to it with the same requestId
+        logger.debug(this.oid + ' receiving remote message request...')
+        try {
+          const response = await this.processReq(body.requestOperation, { originOid: body.sourceOid, ...body.attributes, body: body.requestBody, ...body.parameters })
+          await this.respondStanza(body.sourceOid, from, body.requestId, body.requestOperation, response, {}, {})
+        } catch (err: unknown) {
+          const error = errorHandler(err)
+          logger.error('Returning network message with error... ' + error.message)
+          await this.respondStanzaWithError(body.sourceOid, from, body.requestId, body.requestOperation, error.message, error.status)
+        }
+      } else if (body.messageType === MessageType.RESPONSE) {
+        // If it is a response, emit event with requestId to close the HTTP connection
+        logger.debug(this.oid + ' receiving message response...')
+        this.msgEvents.emit(String(body.requestId), body.responseBody)
+      } else if (body.messageType === MessageType.EVENT) {
+        await this.processEvents(body)
+      } else {
+        // If it is a response, emit event with requestId to close the HTTP connection
+        logger.error('Unknown XMPP message type received...')
+        throw new MyError('Unknown XMPP message type received...', HttpStatusCode.BAD_REQUEST)
+      }
+    } else {
+      logger.debug('Gateway received unknown message type: ' + type)
     }
   }
 

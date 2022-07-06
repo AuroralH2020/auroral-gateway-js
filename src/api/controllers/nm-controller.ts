@@ -107,8 +107,9 @@ export const getNodesInMyOrganisation: getNodesInMyOrganisationCtrl = async (_re
 type getNodesInOrganisationCtrl = expressTypes.Controller<{ cid: string }, {}, {}, GtwUpdateResponse[], {}>
 
 export const getNodesInOrganisation: getNodesInOrganisationCtrl = async (req, res) => {
+        const { cid } = req.params
         try {
-                const response = await nm.getNodesInMyOrganisation()
+                const response = await nm.getNodesInOrganisation(cid)
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)
         } catch (err) {
                 const error = errorHandler(err)
@@ -169,7 +170,7 @@ export const getCidFromReqid: getCidFromReqidCtrl = async (req, res) => {
 }
 
 type getPartnersCtrl = expressTypes.Controller<{}, {}, {}, GtwUpdateResponse[], {}>
-export const getPartners: getPartnersCtrl = async (req, res) => {
+export const getPartners: getPartnersCtrl = async (_req, res) => {
         try {
                 const response = await nm.getPartners()
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)

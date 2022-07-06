@@ -34,7 +34,7 @@ export const start: Ctrl = async (_req, res) => {
 }
 
 export const stop: Ctrl = async (_req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     try {
         await stopXMPPClients(oid)
         return responseBuilder(HttpStatusCode.OK, res, null, null)
@@ -52,8 +52,8 @@ type CtrlStringArray = expressTypes.Controller<{}, {}, {}, string[], { oid: stri
 export const roster: CtrlStringArray = async (_req, res) => {
     const { oid } = res.locals
     try {
-        const roster = await getRoster(oid)
-        return responseBuilder(HttpStatusCode.OK, res, null, roster)
+        const objRoster = await getRoster(oid)
+        return responseBuilder(HttpStatusCode.OK, res, null, objRoster)
 	} catch (err) {
         const error = errorHandler(err)
         logger.error(error.message)
@@ -230,7 +230,7 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
                 const response = events.sendEvent(subscriber, eid, message)
                 if (!response.success) {
                     logger.debug(`PublishEventToChannel: ${oid} ${eid} ${subscriber} ${message}`)
-                    sendEventNetwork(subscriber, eid, oid, message)
+                    await sendEventNetwork(subscriber, eid, oid, message)
                 }
             } catch (error) {
                 logger.error('Error sending event to ' + subscriber + ': ' + error)
