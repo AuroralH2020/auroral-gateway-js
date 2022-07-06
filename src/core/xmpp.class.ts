@@ -201,14 +201,16 @@ export class XMPP {
       return
     }
     const { _to, from, type } = stanza.attrs as { _to: string, from: string, type: string }
+    // ERROR
     if (type === 'error') {
-      // ERROR
       logger.debug(this.oid + ' receiving error response...')
       // logger.debug({ to, from })
       const body = JSON.parse(stanza.getChild('error').text())
       this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
-    } else if (type === 'chat') {
-      // NORMAL CHAT MESSAGE
+      return 
+    }
+    // NORMAL CHAT MESSAGE
+    if (type === 'chat') {
       const body: XMPPMessage = JSON.parse(stanza.getChild('body').text())
       const jid = this.rosterItemsOid.get(body.sourceOid)?.jid
       // Check if origin is in roster
@@ -243,9 +245,10 @@ export class XMPP {
         logger.error('Unknown XMPP message type received...')
         throw new MyError('Unknown XMPP message type received...', HttpStatusCode.BAD_REQUEST)
       }
-    } else {
-      logger.debug('Gateway received unknown message type: ' + type)
-    }
+      return
+    } 
+    // UNKNOWN Message type
+    logger.debug('Gateway received unknown message type: ' + type)
   }
 
   // Request handlers
