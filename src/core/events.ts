@@ -8,7 +8,7 @@ import { JsonType } from '../types/misc-types'
 import { agent } from '../connectors/agent-connector'
 
 // Types
-interface localResponse {
+interface LocalResponse {
     success: boolean,
     body: JsonType
 }
@@ -37,7 +37,6 @@ class Events {
         if (!eventChannel) {
             const newEventChannel: Map<string,EventHandler> = new Map()
             newEventChannel.set(eid, new EventHandler(oid, eid))
-            this.eventChannels.set(oid, newEventChannel)
             this.eventChannels.set(oid, newEventChannel)
         } else {
             this.eventChannels.set(oid, new Map<string, EventHandler>().set(eid, new EventHandler(oid, eid)))
@@ -107,7 +106,7 @@ class Events {
      * @param eid - event id
      * @param subscriberOid - subscriber object id
      */
-    public addSubscriber(oid: string, eid: string, subscriberOid: string): localResponse {
+    public addSubscriber(oid: string, eid: string, subscriberOid: string): LocalResponse {
         logger.debug('Adding subscriber ' + subscriberOid + ' to ' + oid + ':' + eid)
         const xmppClient = clients.get(oid)
         if (!xmppClient) {
@@ -151,7 +150,7 @@ class Events {
         }
     }
 
-    public channelStatus(oid: string, eid: string, sourceOid: string): localResponse {
+    public channelStatus(oid: string, eid: string, _sourceOid: string): LocalResponse {
         logger.debug('Retrieving channel status for ' + oid + ':' + eid)
         const xmppClient = clients.get(oid)
         if (xmppClient) {
@@ -172,7 +171,7 @@ class Events {
         }
     }
 
-    public sendEvent(oid: string, eid: string, body: JsonType): localResponse {
+    public sendEvent(oid: string, eid: string, body: JsonType): LocalResponse {
         logger.debug('Sending event ' + eid + ' / ' + oid)
         const xmppClient = clients.get(oid)
         if (xmppClient) {
@@ -198,7 +197,7 @@ class Events {
             array.push({ oid, eventChannels: oidArray })
         }
         const eventChannelsJsonString = JSON.stringify(array)
-        fs.writeFileSync(path.join(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)), eventChannelsJsonString) // TODO TEST
+        fs.writeFileSync(path.join(path.join(Config.HOME_PATH, Config.EVENTS.SETTINGS_FILE)), eventChannelsJsonString) 
     }
 
     /**
@@ -214,7 +213,7 @@ class Events {
                 const secondLevelMap: Map <string, EventHandler> = new Map() 
                 for (const event of oidEvenChannels) {
                     const eid = event.eid as string
-                    const subscribers = event.subscribers as string[]
+                    const subscribers = event.subscribers 
                     secondLevelMap.set(eid, new EventHandler(oid, eid, subscribers))
                 }
                 this.eventChannels.set(oid, secondLevelMap)

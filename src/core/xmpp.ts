@@ -1,7 +1,7 @@
 /**
  * Interface to XMPP engine
  */
-import { logger, MyError, HttpStatusCode } from '../utils'
+import { MyError, HttpStatusCode } from '../utils'
 import { XMPP } from './xmpp.class'
 import { JsonType } from '../types/misc-types'
 import { agent } from '../connectors/agent-connector'

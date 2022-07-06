@@ -40,8 +40,7 @@ export const nm = {
      */
     handshake: async function(): Promise<GenericResponse<string>> {
         try {
-            const response = await  request('handshake', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
-            return response        
+            return await request('handshake', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Initial handshake failed...', HttpStatusCode.UNAUTHORIZED)

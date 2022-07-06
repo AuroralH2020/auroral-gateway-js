@@ -1,5 +1,4 @@
 // Controller common imports
-import Express from 'express'
 import { expressTypes } from '../../types/index'
 import { HttpStatusCode } from '../../utils/http-status-codes'
 import { logger, errorHandler } from '../../utils'
@@ -20,7 +19,7 @@ import { getPropertyLocaly, putPropertyLocaly } from '../../core/properties'
 
 type Ctrl = expressTypes.Controller<{}, {}, {}, null, { oid: string, password: string }>
 
-export const start: Ctrl = async (req, res) => {
+export const start: Ctrl = async (_req, res) => {
     const { oid, password } = res.locals
     try {
         initialize(oid, password)
@@ -34,7 +33,7 @@ export const start: Ctrl = async (req, res) => {
 	}
 }
 
-export const stop: Ctrl = async (req, res) => {
+export const stop: Ctrl = async (_req, res) => {
     const { oid, password } = res.locals
     try {
         await stopXMPPClients(oid)
@@ -50,8 +49,8 @@ export const stop: Ctrl = async (req, res) => {
 
 type CtrlStringArray = expressTypes.Controller<{}, {}, {}, string[], { oid: string, password: string }>
 
-export const roster: CtrlStringArray = async (req, res) => {
-    const { oid, password } = res.locals
+export const roster: CtrlStringArray = async (_req, res) => {
+    const { oid } = res.locals
     try {
         const roster = await getRoster(oid)
         return responseBuilder(HttpStatusCode.OK, res, null, roster)
@@ -65,16 +64,16 @@ export const roster: CtrlStringArray = async (req, res) => {
 type CtrlSparqlDiscovery = expressTypes.Controller<{ oid: string }, {}, JsonType | undefined, JsonType, { oid: string, password: string }>
 
 export const discovery: CtrlSparqlDiscovery = async (req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     const params = req.params
     const sparql = req.body
     try {
-        const response = await getObjectInfo(oid, params.oid, sparql)
-        if (response.success) {
-            return responseBuilder(HttpStatusCode.OK, res, null, response.body.message as JsonType)
+        const localResponse = await getObjectInfo(oid, params.oid, sparql)
+        if (localResponse.success) {
+            return responseBuilder(HttpStatusCode.OK, res, null, localResponse.body.message as JsonType)
         } else {
-            const response = await getObjectInfoNetwork(oid, params.oid, sparql)
-            return responseBuilder(HttpStatusCode.OK, res, null, response)
+            const remoteResponse = await getObjectInfoNetwork(oid, params.oid, sparql)
+            return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse)
         }
 	} catch (err) {
         const error = errorHandler(err)
@@ -88,7 +87,7 @@ export const discovery: CtrlSparqlDiscovery = async (req, res) => {
 type getPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string}, {}, {}, JsonType, { oid: string, password: string }>
 
 export const getProperty: getPropertyCtrl = async (req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     const params = req.params
     try {
         // test localy if the client exists
@@ -111,7 +110,7 @@ export const getProperty: getPropertyCtrl = async (req, res) => {
 type PutPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string }, JsonType, {}, JsonType, { oid: string, password: string }>
 
 export const putProperty: PutPropertyCtrl = async (req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     const body = req.body
     const params = req.params
     try {
@@ -137,7 +136,7 @@ export const putProperty: PutPropertyCtrl = async (req, res) => {
 type ActivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, {}, { oid: string, password: string }>
 
 export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     const { eid } = req.params
     try {
         events.createEventChannel(oid, eid)
@@ -152,7 +151,7 @@ export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) =
 type DectivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, {}, { oid: string, password: string }>
 
 export const dectivateEventChannel: DectivateEventChannelCtrl = async (req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     const { eid } = req.params
     try {
         events.removeEventChannel(oid, eid)
@@ -167,7 +166,6 @@ export const dectivateEventChannel: DectivateEventChannelCtrl = async (req, res)
 type GetEventChannelsCtrl = expressTypes.Controller<{ oid: string }, {}, {}, string[], { oid: string, password: string }>
 
 export const getEventChannels: GetEventChannelsCtrl = async (req, res) => {
-    const { oid, password } = res.locals
     const params = req.params
     try {
         const eChannels = events.getEventChannelsNames(params.oid)
@@ -182,12 +180,12 @@ export const getEventChannels: GetEventChannelsCtrl = async (req, res) => {
 type SubscribeToEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
 
 export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     const params = req.params
     try {
         const response = events.addSubscriber(params.oid, params.eid, oid)
         if (!response.success) {
-            const networkResponse = await addSubscriberNetwork(params.oid, params.eid, oid)
+            await addSubscriberNetwork(params.oid, params.eid, oid)
             return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' subscribed channel ' + params.eid + ' of remote object ' + params.oid)
         } else {
             return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' subscribed channel ' + params.eid + ' of local object ' + params.oid)
@@ -202,12 +200,12 @@ export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, 
 type UnsubscribeFromEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
 
 export const unsubscribeFromEventChannel: UnsubscribeFromEventChannelCtrl = async (req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     const params = req.params
     try {
-        const response = await events.removeSubscriber(params.oid, params.eid, oid)
+        const response = events.removeSubscriber(params.oid, params.eid, oid)
         if (!response.success) {
-            const networkResponse = await removeSubscriberNetwork(params.oid, params.eid, oid)
+            await removeSubscriberNetwork(params.oid, params.eid, oid)
             return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' unsusbcribed channel ' + params.eid + ' of remote object ' + params.oid)
         } else {
             return responseBuilder(HttpStatusCode.OK, res, null, 'Object ' + oid + ' unsusbcribed channel ' + params.eid + ' of local object ' + params.oid)
@@ -222,7 +220,7 @@ export const unsubscribeFromEventChannel: UnsubscribeFromEventChannelCtrl = asyn
 type PublishEventToChannelCtrl = expressTypes.Controller<{ eid: string }, JsonType, {}, string, { oid: string, password: string }>
 
 export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     const { eid } = req.params
     const message = req.body
     try {
@@ -250,7 +248,7 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
 type EventChannelStatusCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
 
 export const eventChannelStatus: EventChannelStatusCtrl = async (req, res) => {
-    const { oid, password } = res.locals
+    const { oid } = res.locals
     const params = req.params
     try {  
         logger.debug('Event channel status for object ' + params.oid + ' channel ' + params.eid)

@@ -37,7 +37,7 @@ class TokenGenerator {
 
     public start () {
         // Define token claims
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             this.claims = {
                 iss: this.iss,
                 aud: this.aud,

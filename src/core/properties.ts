@@ -1,17 +1,16 @@
-import { HttpStatusCode , logger , MyError } from '../utils'
 import { clients } from './xmpp'
 import { JsonType } from '../types/misc-types'
 import { agent } from '../connectors/agent-connector'
 
 // Types
-interface localResponse {
+interface LocalResponse {
     success: boolean,
     body: JsonType 
 }
 
 // ONLY LOCAL
 
-export async function getPropertyLocaly(sourceOid: string, pid: string, oid: string): Promise<localResponse> {
+export async function getPropertyLocaly(sourceOid: string, pid: string, oid: string): Promise<LocalResponse> {
     if (!clients.has(oid)) {
         console.log('Not found localy: ' + oid)
         return { success: false, body: {} }
@@ -21,7 +20,7 @@ export async function getPropertyLocaly(sourceOid: string, pid: string, oid: str
     }
 }
 
-export async function putPropertyLocaly(sourceOid: string, pid: string, oid: string, body: JsonType): Promise<localResponse> {
+export async function putPropertyLocaly(sourceOid: string, pid: string, oid: string, body: JsonType): Promise<LocalResponse> {
     const xmppClient = clients.get(sourceOid)
     if (!xmppClient) {
         return { success: false, body: {} }

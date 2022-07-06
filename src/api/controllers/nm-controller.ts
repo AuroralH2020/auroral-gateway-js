@@ -15,7 +15,7 @@ import { reloadRoster } from '../../core/xmpp'
 
 type DummyCtrl = expressTypes.Controller<{}, { }, {}, null, {}>
 
-export const dummy: DummyCtrl = async (req, res) => {
+export const dummy: DummyCtrl = async (_req, res) => {
         try {
                 return responseBuilder(HttpStatusCode.OK, res, null, null)
 	} catch (err) {
@@ -93,7 +93,7 @@ export const removeRegistration: removeRegistrationCtrl = async (req, res) => {
 
 type getNodesInMyOrganisationCtrl = expressTypes.Controller<{}, {}, {}, GtwUpdateResponse[], {}>
 
-export const getNodesInMyOrganisation: getNodesInMyOrganisationCtrl = async (req, res) => {
+export const getNodesInMyOrganisation: getNodesInMyOrganisationCtrl = async (_req, res) => {
         try {
                 const response = await nm.getNodesInMyOrganisation()
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)
@@ -104,10 +104,9 @@ export const getNodesInMyOrganisation: getNodesInMyOrganisationCtrl = async (req
         }
 }
 
-type getNodesInOrganisationCtrl = expressTypes.Controller<{cid: string}, {}, {}, GtwUpdateResponse[], {}>
+type getNodesInOrganisationCtrl = expressTypes.Controller<{ cid: string }, {}, {}, GtwUpdateResponse[], {}>
 
 export const getNodesInOrganisation: getNodesInOrganisationCtrl = async (req, res) => {
-        const { cid } = req.params
         try {
                 const response = await nm.getNodesInMyOrganisation()
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)
@@ -132,7 +131,7 @@ export const getNodesInCommunity: getNodesInCommunityCtrl = async (req, res) => 
 }
 
 type getItemsInMyOrganisationCtrl = expressTypes.Controller<{  }, {}, {}, GtwUpdateResponse[], {}>
-export const getItemsInMyOrganisation: getItemsInMyOrganisationCtrl = async (req, res) => {
+export const getItemsInMyOrganisation: getItemsInMyOrganisationCtrl = async (_req, res) => {
         try {
                 const response = await nm.getItemsInMyOrganisation()
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)
@@ -182,7 +181,7 @@ export const getPartners: getPartnersCtrl = async (req, res) => {
 }
 
 type getCommunitiesCtrl = expressTypes.Controller<{}, {}, {}, GtwUpdateResponse[], {}>
-export const getCommunities: getCommunitiesCtrl = async (req, res) => {
+export const getCommunities: getCommunitiesCtrl = async (_req, res) => {
         try {
                 const response = await nm.getCommunities()
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)
@@ -207,7 +206,7 @@ export const getPartner: getPartnerCtrl = async (req, res) => {
 }
 
 type getAgentPrivacyCtrl = expressTypes.Controller<{}, {}, {}, GtwUpdateResponse[], {}>
-export const getAgentPrivacy: getAgentPrivacyCtrl = async (req, res) => {
+export const getAgentPrivacy: getAgentPrivacyCtrl = async (_req, res) => {
         try {
                 const response = await nm.getAgentPrivacy()
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)

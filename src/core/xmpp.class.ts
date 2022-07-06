@@ -1,7 +1,7 @@
 import { client, xml } from '@xmpp/client'
 import EventEmmiter from 'node:events'
 import crypto from 'crypto'
-import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt, PropertiesOpt, NotificationOpt } from '../types/xmpp-types'
+import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt,  NotificationOpt } from '../types/xmpp-types'
 import { HttpStatusCode, logger, errorHandler, MyError } from '../utils'
 import { Config } from '../config'
 import { JsonType } from '../types/misc-types'
@@ -93,9 +93,9 @@ export class XMPP {
     } else {
       // IN CASE OF REQUEST -- Waiting for event response or timeout
       const timeout = setTimeout(
-        (error, message) => {
+        (error, message2) => {
           this.msgEvents.removeAllListeners(String(requestId))
-          callback(error, message)
+          callback(error, message2)
         }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (10s)', status: HttpStatusCode.REQUEST_TIMEOUT }, callback
       )
       this.msgTimeouts.set(requestId, timeout) // Add to timeout list
@@ -152,7 +152,7 @@ export class XMPP {
     })
   }
 
-  private async respondStanza(destinationOid: string, jid: string, requestId: number, requestOperation: number, body: JsonType | null, attributes: JsonType, parameters: JsonType) {
+  private async respondStanza(destinationOid: string, jid: string, requestId: number, requestOperation: number, body: JsonType | null, _attributes: JsonType, _parameters: JsonType) {
     const payload: XMPPMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, requestBody: null, responseBody: body, parameters: {}, attributes: {} }
     const message = xml(
       'message',
@@ -195,7 +195,7 @@ export class XMPP {
 
   private async onStanza(stanza: any) {
     if (stanza.is('message')) {
-      const { to, from, type } = stanza.attrs as { to: string, from: string, type: string }
+      const { _to, from, type } = stanza.attrs as { _to: string, from: string, type: string }
       if (type === 'error') {
         logger.debug(this.oid + ' receiving error response...')
         // logger.debug({ to, from })

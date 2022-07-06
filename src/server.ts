@@ -27,7 +27,7 @@ async function bootstrap () {
     logger.info('Starting AURORAL gateway!!')
     await Token.start()
     logger.info(await nm.handshake())
-    await initialize(Config.GATEWAY.ID, Config.GATEWAY.PASSWORD)
+    initialize(Config.GATEWAY.ID, Config.GATEWAY.PASSWORD)
     await startXMPPClient(Config.GATEWAY.ID)
     events.loadEventChannelsFromFile()
     await Registrations.start()

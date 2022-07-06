@@ -32,7 +32,7 @@ export const agent = {
     getProperty: async function(sourceoid: string, pid: string, oid: string): Promise<GenericResponse<JsonType>> {
         try {
             logger.debug('Getting property from agent: OID:' + oid + ' PID:' + pid)
-            return request(`objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
+            return await request(`objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
             // const response = await Promise.resolve({ message: { test: 'ok' } }) as GenericResponse<any>
         } catch (err: unknown) {
             const error = errorHandler(err)
@@ -43,7 +43,7 @@ export const agent = {
     putProperty: async function(sourceoid: string, pid: string, oid: string, body: JsonType): Promise<GenericResponse<JsonType>> {
         try {
             logger.debug('Putting property to agent: ' + oid + ' ' + pid)
-            return request(`objects/${oid}/properties/${pid}`, 'PUT', body, { ...ApiHeader, 'sourceoid': sourceoid })
+            return await request(`objects/${oid}/properties/${pid}`, 'PUT', body, { ...ApiHeader, 'sourceoid': sourceoid })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Putproperty failed...')
@@ -52,7 +52,7 @@ export const agent = {
     },
     putEvent: async function(oid: string, eid: string, value: JsonType): Promise<GenericResponse<string>> {
         try {
-            return request(`objects/${oid}/events/${eid}`, 'PUT', value , { ...ApiHeader })
+            return await request(`objects/${oid}/events/${eid}`, 'PUT', value , { ...ApiHeader })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Putevent failed...')
@@ -61,7 +61,7 @@ export const agent = {
     },
     discovery: async function(sourceoid: string, destinationOid: string, sparql: JsonType | undefined): Promise<GenericResponse<JsonType>> {
         try {
-            return request(`objects/${destinationOid}/discovery`, 'GET', sparql, { ...ApiHeader, 'sourceoid': sourceoid })
+            return await request(`objects/${destinationOid}/discovery`, 'GET', sparql, { ...ApiHeader, 'sourceoid': sourceoid })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Discovery failed...')
@@ -70,7 +70,7 @@ export const agent = {
     },
     notify: async function(agid: string, nid: string, data: JsonType): Promise<GenericResponse<string>> {
         try {
-            return request(`objects/${agid}/notification/${nid}`, 'POST', data , { ...ApiHeader })
+            return await request(`objects/${agid}/notification/${nid}`, 'POST', data , { ...ApiHeader })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Notify failed...')
