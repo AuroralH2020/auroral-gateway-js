@@ -9,6 +9,7 @@ import {  GtwUpdateResponse } from '../../types/gateway-types'
 import { nm } from '../../connectors/nm-connector'
 import { JsonType } from '../../types/misc-types'
 import { Registrations } from '../../core/registrations'
+import { reloadRoster } from '../../core/xmpp'
 
 // Controllers
 
@@ -37,7 +38,7 @@ export const getRegistrations: getRegistrationsCtrl = async (req, res) => {
 	}
 }
 
-type postRegistrationsCtrl = expressTypes.Controller<{ agid1: string }, { items: JSON[], agid: string }, {}, JsonType, {}>
+type postRegistrationsCtrl = expressTypes.Controller<{ agid1: string }, { items: JsonType[], agid: string }, {}, JsonType, {}>
 export const postRegistrations: postRegistrationsCtrl = async (req, res) => {
         const { agid, items } = req.body
         try {
@@ -52,11 +53,20 @@ export const postRegistrations: postRegistrationsCtrl = async (req, res) => {
 	}
 }
 
-type updateRegistrationsCtrl = expressTypes.Controller<{ agid1: string }, { items: JSON[], agid: string }, {}, GtwUpdateResponse[], {}>
+type updateRegistrationsCtrl = expressTypes.Controller<{ agid1: string }, { items: JsonType[], agid: string }, {}, GtwUpdateResponse[], {}>
 export const updateRegistrations: updateRegistrationsCtrl = async (req, res) => {
         const { agid, items } = req.body
         try {
                 const response = await nm.modifyItems(agid, items)
+                try {
+                        for (const item of items) {
+                                await reloadRoster(item.oid) 
+                        }
+                } catch (err) {
+                        const error = errorHandler(err)
+                        logger.warn('Can not update roster:' + error.message)
+                }
+                
                 return responseBuilder(HttpStatusCode.OK, res, null,  response.message)
         } catch (err) {
                 const error = errorHandler(err)

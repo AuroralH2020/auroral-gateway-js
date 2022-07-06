@@ -92,6 +92,19 @@ export const reloadRoster = async function (oid: string) {
 }
 
 /**
+ * Reload rosters for all XMPP clients
+ */
+export const reloadAllRosters = async function () {
+    const keys = Array.from(clients.keys())
+    for (let i = 0, l = keys.length; i < l; i++) {
+        const xmpp = clients.get(keys[i])
+        if (xmpp) {
+            await xmpp.reloadRoster()
+        }
+    }
+}
+
+/**
  * Sends a request to retrieve TD of and object, or sparql discovery query from another agent
  * @param oid
  * @param destinationOid 

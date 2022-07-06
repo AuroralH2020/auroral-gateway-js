@@ -7,6 +7,7 @@ import { Config } from '../config'
 import { JsonType } from '../types/misc-types'
 import { agent } from '../connectors/agent-connector'
 import { events } from './events'
+import { reloadAllRosters } from './xmpp'
 
 export class XMPP {
 
@@ -271,6 +272,9 @@ export class XMPP {
   private async processNotification(options: NotificationOpt) {
     try {
       await agent.notify(Config.GATEWAY.ID, options.originOid, options.body ? options.body : {})
+      // Notification -> reload all rosters
+      // TODO check if it is needed? (base on notif type)
+      await reloadAllRosters()
     } catch (err) {
       const error = errorHandler(err)
       logger.warn('Notification error: ' +  error.message)

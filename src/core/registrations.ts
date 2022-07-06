@@ -26,7 +26,8 @@ class RegistrationsClass {
         try {
             const response = await nm.getAgentItems(Config.GATEWAY.ID)
             logger.info('Updating registrations information...')
-            this.registrations = response.message
+            // OIDS + AGID
+            this.registrations = [...response.message, Config.GATEWAY.ID]
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Updating registrations failed...' + error.message)

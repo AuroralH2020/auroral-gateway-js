@@ -57,7 +57,7 @@ ApiRouter
 .get('/agents/cid/:reqid', nm_ctrl.getCidFromReqid) // getCid
 .get('/agents/partners', nm_ctrl.getPartners) // getPartners
 .get('/agents/communities/', nm_ctrl.getCommunities) // getCommunities
-.get('/agents/partners/:cid', nm_ctrl.getPartner) // getPartnerInfo
+.get('/agents/partner/:cid', nm_ctrl.getPartner) // getPartnerInfo partners-> parnter (agent compatible)
 
 // SECURITY
 .get('/security/privacy', nm_ctrl.getAgentPrivacy) // getItemsPrivacy
