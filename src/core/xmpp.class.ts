@@ -48,8 +48,10 @@ export class XMPP {
     this.client.start({}).catch(
       (err: unknown) => {
         const error = errorHandler(err)
-        logger.error('XMPP connection for oid ' + this.oid + ' could not be established')
-        logger.error(error.message)
+        if (error.message !== 'Connection is not offline') {
+          logger.error('XMPP connection for oid ' + this.oid + ' could not be established')
+          logger.error(error.message)
+        }
       })
   }
 

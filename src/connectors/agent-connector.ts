@@ -29,17 +29,33 @@ const ApiHeader = {
 }
 
 export const agent = {
+    /**
+     *  Sends get property request to agent
+     * @param sourceoid 
+     * @param pid 
+     * @param oid 
+     * @returns 
+     */
     getProperty: async function(sourceoid: string, pid: string, oid: string): Promise<GenericResponse<JsonType>> {
         try {
             logger.debug('Getting property from agent: OID:' + oid + ' PID:' + pid)
-            return await request(`objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
+            // const response = await request(`objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
             // const response = await Promise.resolve({ message: { test: 'ok' } }) as GenericResponse<any>
+            return await request(`objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Getproperty failed...')
             throw new MyError(error.message, error.status)
         }
     },
+    /**
+     * Sends put property request to agent
+     * @param sourceoid 
+     * @param pid 
+     * @param oid 
+     * @param body 
+     * @returns 
+     */
     putProperty: async function(sourceoid: string, pid: string, oid: string, body: JsonType): Promise<GenericResponse<JsonType>> {
         try {
             logger.debug('Putting property to agent: ' + oid + ' ' + pid)
@@ -50,6 +66,13 @@ export const agent = {
             throw new MyError(error.message, error.status)
         }
     },
+    /**
+     * Sends put event request to agent
+     * @param oid 
+     * @param eid 
+     * @param value 
+     * @returns 
+     */
     putEvent: async function(oid: string, eid: string, value: JsonType): Promise<GenericResponse<string>> {
         try {
             return await request(`objects/${oid}/events/${eid}`, 'PUT', value , { ...ApiHeader })
@@ -59,6 +82,13 @@ export const agent = {
             throw new MyError(error.message, HttpStatusCode.BAD_REQUEST)
         }
     },
+    /**
+     * Sends discovery request to agent
+     * @param sourceoid 
+     * @param destinationOid 
+     * @param sparql 
+     * @returns 
+     */
     discovery: async function(sourceoid: string, destinationOid: string, sparql: JsonType | undefined): Promise<GenericResponse<JsonType>> {
         try {
             return await request(`objects/${destinationOid}/discovery`, 'GET', sparql, { ...ApiHeader, 'sourceoid': sourceoid })
@@ -68,6 +98,13 @@ export const agent = {
             throw new MyError(error.message, HttpStatusCode.BAD_REQUEST)
         }
     },
+    /**
+     * Sends notification to agent
+     * @param agid 
+     * @param nid 
+     * @param data 
+     * @returns 
+     */
     notify: async function(agid: string, nid: string, data: JsonType): Promise<GenericResponse<string>> {
         try {
             return await request(`objects/${agid}/notification/${nid}`, 'POST', data , { ...ApiHeader })

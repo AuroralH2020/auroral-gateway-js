@@ -100,6 +100,14 @@ export function putPropertyNetwork(sourceOid: string, pid: string, oid: string, 
     })
 }
 
+/**
+ * Retrieves all subscribers for the given oid + eid
+ * If it does not exist, throws error
+ * @param oid 
+ * @param eid 
+ * @param sourceOid 
+ * @returns 
+ */
 export function getEventChannelStatusNetwork(oid: string, eid: string, sourceOid: string): Promise<{ message: string }> {
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(sourceOid)
@@ -115,7 +123,14 @@ export function getEventChannelStatusNetwork(oid: string, eid: string, sourceOid
         }
     })
 }
-
+/**
+ * Send event message to remote object
+ * @param oid 
+ * @param eid 
+ * @param sourceOid 
+ * @param body 
+ * @returns 
+ */
 export function sendEventNetwork(oid: string, eid: string, sourceOid: string, body: JsonType): Promise<JsonType> {
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(sourceOid)
