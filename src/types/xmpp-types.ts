@@ -22,6 +22,18 @@ export enum RequestOperation {
     SENDNOTIFICATION = 12
 }
 
+export enum RecordStatusCode {
+  MESSAGE_NOT_SENT = 1,
+  RESPONSE_NOT_RECEIVED = 2,
+  MESSAGE_OK = 3
+}
+
+export enum RecordStatus {
+  MESSAGE_NOT_SENT = 'Request message was not possible to send',
+  RESPONSE_NOT_RECEIVED = 'No response message received',
+  MESSAGE_OK = 'OK'
+}
+
 export type RosterItem = {
     jid: string,
     name: string,
@@ -50,6 +62,18 @@ export type XMPPErrorMessage = {
     destinationOid: string,
     errorMessage: string,
     statusCode: number
+}
+
+export interface RecordType {
+  messageType: RequestOperation, // In NM messageType contains reqOperation!!
+  requestId: number, // ID of the message
+  sourceOid: string,
+  destinationOid: string,
+  timestamp: number,
+  messageSize: number,
+  messageStatus: RecordStatus,
+  messageStatusCode: RecordStatusCode,
+  reqInitiator: boolean
 }
 
 export interface Options {

@@ -8,6 +8,7 @@ import { nm } from './connectors/nm-connector'
 import { logger, errorHandler as eH } from './utils'
 import { events } from './core/events'
 import { Registrations } from './core/registrations'
+import { sendRecords } from './core/records'
 
 /**
  * Error Handler. Provides full stack - only in dev
@@ -73,8 +74,15 @@ function shutdown() {
         logger.error(err)
         process.exitCode = 1
       }
-      logger.info('BYE!')
-      process.exit()
+      // Send remaining record counters to NM
+      sendRecords()
+      .catch((err) => {
+        logger.warn('Counters could not be stored...')
+      })
+      .finally(() => {
+        logger.info('BYE!')
+        process.exit()
+      })
     }) // decorated by stoppable module to handle keep alives 
   })
 }

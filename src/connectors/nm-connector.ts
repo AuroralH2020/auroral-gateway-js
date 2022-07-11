@@ -9,6 +9,7 @@ import { logger, errorHandler, HttpStatusCode, MyError } from '../utils'
 import { GenericResponse } from '../types/nm-types'
 import { Token } from '../core/security'
 import { JsonType } from '../types/misc-types'
+import { RecordType } from '../types/xmpp-types'
 
 // CONSTANTS 
 
@@ -59,7 +60,7 @@ export const nm = {
      * @param records 
      * @returns jsonType
      */
-    postCounters: async function(records: JsonType): Promise<GenericResponse<void>> {
+    postCounters: async function(records: RecordType[]): Promise<GenericResponse<void>> {
         return request('counters', 'POST', records, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
     },
     /**
