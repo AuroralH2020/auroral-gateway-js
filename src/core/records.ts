@@ -52,12 +52,13 @@ export const sendRecords = async (): Promise<void> => {
             // Remove records to be sent (Splice to avoid removing recent records)
             records.splice(0, recordsToSend.length)
             // Send records
+            console.log(recordsToSend)
             await nm.postCounters(recordsToSend)
         } 
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)
-        throw new MyError('Error storing counters...')
+        throw new MyError('Error storing counters...:' + error.message)
     }
 }
 

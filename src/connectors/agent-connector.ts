@@ -91,7 +91,7 @@ export const agent = {
      */
     discovery: async function(sourceoid: string, destinationOid: string, sparql: JsonType | undefined): Promise<GenericResponse<JsonType>> {
         try {
-            return await request(`objects/${destinationOid}/discovery`, 'GET', sparql, { ...ApiHeader, 'sourceoid': sourceoid })
+            return await request(`objects/${destinationOid}/discovery`, 'POST', sparql, { ...ApiHeader, 'sourceoid': sourceoid })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Discovery failed...')
@@ -105,9 +105,9 @@ export const agent = {
      * @param data 
      * @returns 
      */
-    notify: async function(agid: string, nid: string, data: JsonType): Promise<GenericResponse<string>> {
+    notify: async function(sourceoid: string, agid: string, nid: string, data: JsonType): Promise<GenericResponse<string>> {
         try {
-            return await request(`objects/${agid}/notification/${nid}`, 'POST', data , { ...ApiHeader })
+            return await request(`objects/${agid}/notifications/${nid}`, 'POST', data , { ...ApiHeader, 'sourceoid': sourceoid })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Notify failed...')

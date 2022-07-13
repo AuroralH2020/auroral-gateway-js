@@ -73,7 +73,7 @@ export const discovery: CtrlSparqlDiscovery = async (req, res) => {
             return responseBuilder(HttpStatusCode.OK, res, null, localResponse.body.message as JsonType)
         } else {
             const remoteResponse = await getObjectInfoNetwork(oid, params.oid, sparql)
-            return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse)
+            return responseBuilder(HttpStatusCode.OK, res, null, [{ message: remoteResponse }] as JsonType)
         }
 	} catch (err) {
         const error = errorHandler(err)
@@ -96,7 +96,7 @@ export const getProperty: getPropertyCtrl = async (req, res) => {
         if (!localResponse.success) {
              // if not, get the property from the network
              const remoteResponse = await getPropertyNetwork(oid, params.pid, params.oid)
-            return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse)
+            return responseBuilder(HttpStatusCode.OK, res, null, [{ message: remoteResponse }] as JsonType)
         } else {
             return responseBuilder(HttpStatusCode.OK, res, null, localResponse.body)       
         }

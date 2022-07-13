@@ -41,26 +41,26 @@ ApiRouter
 .delete('/objects/:oid/actions/:aid/tasks/:tid', basicAuth(), nm_ctrl.dummy)
 
 // REGISTRATION
-.get('/agents/:agid/objects', nm_ctrl.getRegistrations) // getRegistrations
-.post('/agents/:agid/objects', nm_ctrl.postRegistrations) // postRegistrations
-.put('/agents/:agid/objects', nm_ctrl.updateRegistrations) // updateRegistration
-.post('/agents/:agid/objects/delete', nm_ctrl.removeRegistration) // removeRegistrations
+.get('/agents/:agid/objects', basicAuth(), nm_ctrl.getRegistrations) // getRegistrations
+.post('/agents/:agid/objects',basicAuth(), nm_ctrl.postRegistrations) // postRegistrations
+.put('/agents/:agid/objects', basicAuth(), nm_ctrl.updateRegistrations) // updateRegistration
+.post('/agents/:agid/objects/delete', basicAuth(), nm_ctrl.removeRegistration) // removeRegistrations
 
 // DISCOVERY
-.get('/objects', basicAuth(), cs_ctrl.roster)  // discovery gateway roster
-.get('/discovery/nodes/organisation', nm_ctrl.getNodesInMyOrganisation) // organisationNodes
-.get('/discovery/nodes/organisation/:cid', nm_ctrl.getNodesInOrganisation) 
-.get('/discovery/nodes/community/:commid', nm_ctrl.getNodesInCommunity) // communityNodes
-.get('/discovery/items/organisation', nm_ctrl.getItemsInMyOrganisation) // organisationItems
-.get('/discovery/items/contract/:ctid', nm_ctrl.getItemsInContract) // contractItems
+.get('/objects', basicAuth(), basicAuth(), cs_ctrl.roster)  // discovery gateway roster
+.get('/discovery/nodes/organisation', basicAuth(), nm_ctrl.getNodesInMyOrganisation) // organisationNodes
+.get('/discovery/nodes/organisation/:cid', basicAuth(), nm_ctrl.getNodesInOrganisation) 
+.get('/discovery/nodes/community/:commid', basicAuth(), nm_ctrl.getNodesInCommunity) // communityNodes
+.get('/discovery/items/organisation', basicAuth(), nm_ctrl.getItemsInMyOrganisation) // organisationItems
+.get('/discovery/items/contract/:ctid', basicAuth(), nm_ctrl.getItemsInContract) // contractItems
 .post('/objects/:oid', basicAuth(), cs_ctrl.discovery) // discoveryRemote
-.get('/agents/cid/:reqid', nm_ctrl.getCidFromReqid) // getCid
-.get('/agents/partners', nm_ctrl.getPartners) // getPartners
-.get('/agents/communities/', nm_ctrl.getCommunities) // getCommunities
-.get('/agents/partner/:cid', nm_ctrl.getPartner) // getPartnerInfo partners-> parnter (agent compatible)
+.get('/agents/cid/:reqid', basicAuth(), nm_ctrl.getCidFromReqid) // getCid
+.get('/agents/partners', basicAuth(), nm_ctrl.getPartners) // getPartners
+.get('/agents/communities/', basicAuth(), nm_ctrl.getCommunities) // getCommunities
+.get('/agents/partner/:cid', basicAuth(), nm_ctrl.getPartner) // getPartnerInfo partners-> parnter (agent compatible)
 
 // SECURITY
-.get('/security/privacy', nm_ctrl.getAgentPrivacy) // getItemsPrivacy
-.get('/security/contracts/:cid', nm_ctrl.getContractedItemsByCid) // getContracts
+.get('/security/privacy', basicAuth(), nm_ctrl.getAgentPrivacy) // getItemsPrivacy
+.get('/security/contracts/:cid', basicAuth(), nm_ctrl.getContractedItemsByCid) // getContracts
 
 export { ApiRouter }

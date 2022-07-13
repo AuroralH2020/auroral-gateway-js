@@ -1,4 +1,4 @@
-import { client, xml } from '@xmpp/client'
+import { client, jid, xml } from '@xmpp/client'
 import EventEmmiter from 'node:events'
 import crypto from 'crypto'
 import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt,  NotificationOpt, RecordStatusCode } from '../types/xmpp-types'
@@ -102,7 +102,7 @@ export class XMPP {
             this.msgEvents.removeAllListeners(String(requestId))
             await addRecord(requestOperation, requestId, this.oid, destinationOid, '', RecordStatusCode.RESPONSE_NOT_RECEIVED, true)
             callback(error, message2)
-          }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (10s)', status: HttpStatusCode.REQUEST_TIMEOUT }, callback
+          }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (' + Config.NM.TIMEOUT + ')', status: HttpStatusCode.REQUEST_TIMEOUT }, callback
         )
         this.msgTimeouts.set(requestId, timeout) // Add to timeout list
         this.msgEvents.on(String(requestId), async (data) => {
@@ -151,7 +151,8 @@ export class XMPP {
     this.rosterItemsJid.clear()
     for (let i = 0, l = rosterItems.length; i < l; i++) {
       this.rosterItemsJid.set(rosterItems[i].attrs.jid, rosterItems[i].attrs)
-      this.rosterItemsOid.set(rosterItems[i].attrs.name, rosterItems[i].attrs)
+      const userName = jid.jid(rosterItems[i].attrs.jid).getLocal() // Fix because 'username' is not always the same as 'name'
+      this.rosterItemsOid.set(userName, rosterItems[i].attrs)
     }
   }
 
@@ -295,7 +296,7 @@ export class XMPP {
 
   private async processNotification(options: NotificationOpt) {
     try {
-      await agent.notify(Config.GATEWAY.ID, options.originOid, options.body ? options.body : {})
+      await agent.notify(options.originOid, Config.GATEWAY.ID, options.nid, options.body ? options.body : {})
       // Notification -> reload all rosters
       // TODO check if it is needed? (base on notif type)
       await reloadAllRosters()
@@ -331,7 +332,9 @@ export class XMPP {
   }
 
   private async getSemanticInfo(options: Options) {
-    const response = await agent.discovery(this.oid, options.originOid, options.body ? options.body : undefined)
+    // const response = options.body && Object.keys(options.body).length > 0 ?
+        // await agent.discovery(options.originOid, this.oid, options.body) : 
+    const response = await agent.discovery(options.originOid, this.oid, undefined)
     if (response.error) {
       throw new MyError(response.error)
     }

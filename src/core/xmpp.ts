@@ -110,10 +110,10 @@ export const reloadAllRosters = async function () {
  * @param destinationOid 
  * @param sparql 
  */
-export const getObjectInfo =  async function (oid: string, destinationOid: string, sparql?: JsonType) {
+export const getObjectInfo =  async function (sourceoid: string, destinationOid: string, sparql?: JsonType) {
     const xmpp = clients.get(destinationOid)
     if (xmpp) {
-        const response = await agent.discovery(oid, destinationOid, sparql)
+        const response = await agent.discovery(sourceoid, destinationOid, sparql)
         if (response.error) {
             throw new MyError(response.error)
         } else {

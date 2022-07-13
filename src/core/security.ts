@@ -25,8 +25,8 @@ class TokenGenerator {
     public constructor () {
         // Load Keys
         try {
-            this.priv_cert = fs.readFileSync(path.join(Config.HOME_PATH, '/keystore/gateway-key.pem'))
-            this.pub_cert = fs.readFileSync(path.join(Config.HOME_PATH, '/keystore/gateway-pubkey.pem'))
+            this.priv_cert = fs.readFileSync(path.join(Config.HOME_PATH, '/persistance/keystore/gateway-key.pem'))
+            this.pub_cert = fs.readFileSync(path.join(Config.HOME_PATH, '/persistance/keystore/gateway-pubkey.pem'))
         } catch (err) {
             logger.error('Please generate keys before using the Gateway')
             process.exit(0)
