@@ -40,7 +40,8 @@ export const addRecord = async (messageType: RequestOperation,
     // IF counter over 25 send records
     if (counter > 25) {
         counter = 0
-        await sendRecords()
+        // TODO consider await??
+        sendRecords()
     }
 }
 
@@ -58,8 +59,8 @@ export const sendRecords = async (): Promise<void> => {
         } 
     } catch (err: unknown) {
         const error = errorHandler(err)
-        logger.error(error.message)
-        throw new MyError('Error storing counters...:' + error.message)
+        logger.error('Error storing counters' + error.message)
+        // throw new MyError('Error storing counters...:' + error.message)
     }
 }
 

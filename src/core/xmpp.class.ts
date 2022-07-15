@@ -259,8 +259,8 @@ export class XMPP {
         logger.debug(this.oid + ' receiving message response...')
         this.msgEvents.emit(String(body.requestId), body.responseBody)
       } else if (body.messageType === MessageType.EVENT) {
+        await this.processEvents(this.oid, body)
         await addRecord(body.requestOperation, body.requestId, body.sourceOid, body.destinationOid, JSON.stringify(body.requestBody), RecordStatusCode.MESSAGE_OK, false)
-        await this.processEvents(body)
       } else {
         // If it is a response, emit event with requestId to close the HTTP connection
         logger.error('Unknown XMPP message type received...')
@@ -342,10 +342,11 @@ export class XMPP {
     return response.message
   }
 
-  private async processEvents(body: XMPPMessage) {
+  private async processEvents(oid: string, body: XMPPMessage) {
     // Event --> @TBD check if ACK required, if no ACK you dont need to respond
     try {
-      await agent.putEvent(body.sourceOid, body.parameters.eid, body.requestBody!)
+      logger.debug('Receiving event OID:' + oid + 'eid:' + body.parameters.eid)
+      await agent.putEvent(body.sourceOid, oid, body.parameters.eid, body.requestBody!)
     } catch (err: unknown) {
       const error = errorHandler(err)
       logger.error('Returning network message with error... ' + error.message)

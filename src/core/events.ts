@@ -50,8 +50,7 @@ class Events {
      */
     public removeEventChannel(oid: string, eid: string): void {
         logger.debug('Removing event channel ' + oid + ':' + eid)
-        const xmppClient = clients.get(oid)
-        if (!xmppClient) {
+        if (!clients.has(oid)) {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
         }
         const eventChannel =  this.eventChannels.get(oid)
@@ -69,8 +68,7 @@ class Events {
      */
     public getEventChannelsNames(oid: string): string[] {
         logger.debug('Retrieving event channels names for ' + oid)
-        const xmppClient = clients.get(oid)
-        if (!xmppClient) {
+        if (!clients.has(oid)) {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
         }
         const eventChannel =  this.eventChannels.get(oid)
@@ -88,8 +86,7 @@ class Events {
      */
     public getSubscribers(oid: string, eid: string): string[] {
         logger.debug('Retrieving subscribers for ' + oid + ':' + eid)
-        const xmppClient = clients.get(oid)
-        if (!xmppClient) {
+        if (!clients.has(oid)) {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
         }
         const eventChannel =  this.eventChannels.get(oid)
@@ -108,8 +105,7 @@ class Events {
      */
     public addSubscriber(oid: string, eid: string, subscriberOid: string): LocalResponse {
         logger.debug('Adding subscriber ' + subscriberOid + ' to ' + oid + ':' + eid)
-        const xmppClient = clients.get(oid)
-        if (!xmppClient) {
+        if (!clients.has(oid)) {
             return { success: false, body: {} }
         }
         const eventChannel =  this.eventChannels.get(oid)
@@ -133,8 +129,7 @@ class Events {
      */
     public removeSubscriber(oid: string, eid: string, subscriberOid: string) {
         logger.debug('Removing subscriber ' + subscriberOid + ' from ' + oid + ':' + eid)
-        const xmppClient = clients.get(oid)
-        if (!xmppClient) {
+        if (!clients.has(oid)) {
             return { success: false, body: {} }
         }
         const eventChannel =  this.eventChannels.get(oid)
@@ -152,8 +147,7 @@ class Events {
 
     public channelStatus(oid: string, eid: string, _sourceOid: string): LocalResponse {
         logger.debug('Retrieving channel status for ' + oid + ':' + eid)
-        const xmppClient = clients.get(oid)
-        if (xmppClient) {
+        if (clients.has(oid)) {
             const eventChannel =  this.eventChannels.get(oid)
             if (eventChannel) {
                 if (eventChannel.has(eid)) {
@@ -171,11 +165,10 @@ class Events {
         }
     }
 
-    public sendEvent(oid: string, eid: string, body: JsonType): LocalResponse {
+    public sendEvent(sourceoid: string, oid: string, eid: string, body: JsonType): LocalResponse {
         logger.debug('Sending event ' + eid + ' / ' + oid)
-        const xmppClient = clients.get(oid)
-        if (xmppClient) {
-            agent.putEvent(oid, eid, body)
+        if (clients.has(oid)) {
+            agent.putEvent(sourceoid, oid, eid, body)
             return { success: true, body: {} }
         } else {
             // send message to network

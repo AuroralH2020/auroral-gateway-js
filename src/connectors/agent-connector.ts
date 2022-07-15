@@ -73,9 +73,10 @@ export const agent = {
      * @param value 
      * @returns 
      */
-    putEvent: async function(oid: string, eid: string, value: JsonType): Promise<GenericResponse<string>> {
+    putEvent: async function(sourceoid: string, destinationOid: string, eid: string, value: JsonType): Promise<GenericResponse<string>> {
         try {
-            return await request(`objects/${oid}/events/${eid}`, 'PUT', value , { ...ApiHeader })
+            console.log('Putting event to agent: /objects/' + destinationOid + '/events/' + eid)
+            return await request(`objects/${destinationOid}/events/${eid}`, 'PUT', value , { ...ApiHeader, sourceoid })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Putevent failed...')

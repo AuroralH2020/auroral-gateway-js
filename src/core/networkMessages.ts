@@ -125,17 +125,17 @@ export function getEventChannelStatusNetwork(oid: string, eid: string, sourceOid
 }
 /**
  * Send event message to remote object
+ * @param sourceoid 
  * @param oid 
  * @param eid 
- * @param sourceOid 
  * @param body 
  * @returns 
  */
-export function sendEventNetwork(oid: string, eid: string, sourceOid: string, body: JsonType): Promise<JsonType> {
+export function sendEventNetwork(sourceoid: string, oid: string, eid: string, body: JsonType): Promise<JsonType> {
     return new Promise((resolve, reject) => {
-        const xmppClient = clients.get(sourceOid)
+        const xmppClient = clients.get(sourceoid)
         if (xmppClient) {
-            xmppClient.sendStanza(oid, body, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT, { eid }, {}, (err: boolean, message: JsonType) => {
+            xmppClient.sendStanza(oid, body, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT, {}, { eid}, (err: boolean, message: JsonType) => {
                 if (err) {
                     reject(new MyError(message.error, message.status))
                 }
@@ -150,12 +150,12 @@ export function sendEventNetwork(oid: string, eid: string, sourceOid: string, bo
 /**
  * Sends a request to retrieve TD of and object, or sparql discovery query from another agent
  * Sends message over the network
- * @param oid 
+ * @param sourceoid 
  * @param sparql 
  */
- export const getObjectInfoNetwork =  async function (oid: string, destinationOid: string, sparql?: JsonType): Promise<JsonType> {
+ export const getObjectInfoNetwork =  async function (sourceoid: string, destinationOid: string, sparql?: JsonType): Promise<JsonType> {
     return new Promise((resolve, reject) => {
-        const xmppClient = clients.get(oid)
+        const xmppClient = clients.get(sourceoid)
         if (xmppClient) {
             xmppClient.sendStanza(destinationOid, sparql ? sparql : null, RequestOperation.GETTHINGDESCRIPTION, MessageType.REQUEST, {}, {}, (err: boolean, message: JsonType) => {
                 if (err) {
@@ -164,7 +164,7 @@ export function sendEventNetwork(oid: string, eid: string, sourceOid: string, bo
                 resolve(message)
             })
         } else {
-            throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND) 
+            throw new MyError('XMPP client ' + sourceoid + ' does not exist', HttpStatusCode.NOT_FOUND) 
         }
     })
 }

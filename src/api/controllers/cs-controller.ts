@@ -227,10 +227,10 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
         // retrieve subscribers and send message to each one
         for (const subscriber of events.getSubscribers(oid, eid)) {
             try {
-                const response = events.sendEvent(subscriber, eid, message)
+                const response = events.sendEvent(oid, subscriber, eid, message)
                 if (!response.success) {
                     logger.debug(`PublishEventToChannel: ${oid} ${eid} ${subscriber} ${message}`)
-                    await sendEventNetwork(subscriber, eid, oid, message)
+                    await sendEventNetwork(oid, subscriber, eid, message)
                 }
             } catch (error) {
                 logger.error('Error sending event to ' + subscriber + ': ' + error)
