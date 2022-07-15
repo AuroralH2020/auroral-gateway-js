@@ -127,7 +127,8 @@ export class XMPP {
       const error = errorHandler(err)
       logger.error(error.message)
       await addRecord(requestOperation, 0, this.oid, destinationOid, '', RecordStatusCode.MESSAGE_NOT_SENT, true)
-      throw new MyError(error.message, HttpStatusCode.SERVICE_UNAVAILABLE)
+      callback(true, error)
+      // throw new MyError(error.message, HttpStatusCode.SERVICE_UNAVAILABLE)
     }
   }
 
@@ -168,7 +169,7 @@ export class XMPP {
     })
   }
 
-  private async respondStanza(destinationOid: string, jid: string, requestId: number, requestOperation: number, body: JsonType | null, _attributes: JsonType, _parameters: JsonType) {
+  private async respondStanza(destinationOid: string, jid: string, requestId: number, requestOperation: RequestOperation, body: JsonType | null, _attributes: JsonType, _parameters: JsonType) {
     const payload: XMPPMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, requestBody: null, responseBody: body, parameters: {}, attributes: {} }
     const message = xml(
       'message',
@@ -178,7 +179,7 @@ export class XMPP {
     await this.client.send(message)
   }
 
-  private async respondStanzaWithError(destinationOid: string, jid: string, requestId: number, requestOperation: number, errorMessage: string, statusCode: number) {
+  private async respondStanzaWithError(destinationOid: string, jid: string, requestId: number, requestOperation: RequestOperation, errorMessage: string, statusCode: number) {
     const payload: XMPPErrorMessage = { messageType: 2, requestId, requestOperation, sourceAgid: Config.GATEWAY.ID, sourceOid: this.oid, destinationOid, errorMessage, statusCode }
     const message = xml(
       'message',

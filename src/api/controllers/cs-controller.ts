@@ -111,8 +111,8 @@ type PutPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string }, Jso
 
 export const putProperty: PutPropertyCtrl = async (req, res) => {
     const { oid } = res.locals
-    const body = req.body
     const params = req.params
+    const body = req.body
     try {
         // test localy if the client exists
         logger.debug(`PutProperty request OID:${params.oid} PID:${params.pid}`)
@@ -120,7 +120,7 @@ export const putProperty: PutPropertyCtrl = async (req, res) => {
         if (!localResponse.success) {
              // if not, get the property from the network
              const remoteResponse = await putPropertyNetwork(oid, params.pid, params.oid, body)
-            return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse)
+            return responseBuilder(HttpStatusCode.OK, res, null, [{ message: remoteResponse }] as JsonType)
         } else {
             return responseBuilder(HttpStatusCode.OK, res, JSON.stringify(localResponse.body))       
         }

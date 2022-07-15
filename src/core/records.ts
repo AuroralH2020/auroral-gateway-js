@@ -4,7 +4,7 @@ import { nm } from '../connectors/nm-connector'
 import { Config } from '../config'
 
 // Variables
-const records: RecordType[] = []
+let records: RecordType[] = []
 const recordStatuses: RecordStatus[] = [RecordStatus.MESSAGE_NOT_SENT, RecordStatus.RESPONSE_NOT_RECEIVED, RecordStatus.MESSAGE_OK]
 let counter: number = 0
 const countersTimer: NodeJS.Timer = setInterval(() => {
@@ -48,11 +48,12 @@ export const sendRecords = async (): Promise<void> => {
     try {
         // Verify that there is something to send before sending to NM
         if (records.length > 0) {
-            const recordsToSend = records
+            logger.debug('Sending records [' + String(recordStatuses.length) + ']')
+            // TODO consider using a queue to send records
+            const recordsToSend = [...records]
             // Remove records to be sent (Splice to avoid removing recent records)
-            records.splice(0, recordsToSend.length)
+            records = records.slice(0, recordsToSend.length)
             // Send records
-            console.log(recordsToSend)
             await nm.postCounters(recordsToSend)
         } 
     } catch (err: unknown) {

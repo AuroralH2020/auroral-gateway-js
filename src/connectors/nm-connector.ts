@@ -61,7 +61,7 @@ export const nm = {
      * @returns jsonType
      */
     postCounters: async function(records: RecordType[]): Promise<GenericResponse<void>> {
-        return request('counters', 'POST', records, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
+        return request('counters', 'POST', { records }, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
     },
     /**
      * Get user roster from NM
