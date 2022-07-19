@@ -31,7 +31,8 @@ export const Config = {
 		SERVICE: process.env.XMPP_SERVICE!,
 		DOMAIN: process.env.XMPP_DOMAIN!,
 		RESOURCE: process.env.XMPP_RESOURCE! || 'AuroralNode',
-		ROSTER_REFRESH: process.env.ROSTER_REFRESH || 300000 // Defaults 5 min
+		ROSTER_REFRESH: process.env.ROSTER_REFRESH || 300000, // Defaults 5 min
+		SIGN_MESSAGES: process.env.SIGN_MESSAGES || true
 	},
 	EVENTS: {
 		SETTINGS_FILE: process.env.EVENT_SETTINGS_FILE || '/persistance/events.json',
@@ -40,5 +41,11 @@ export const Config = {
 		IP: process.env.GTW_AGENT_HOST!, 
 		PORT: process.env.GTW_AGENT_PORT!,
 		TIMEOUT: process.env.GTW_AGENT_TIMEOUT || 10000 // 10 sec
+	},
+	DB: {
+		HOST: process.env.DB_HOST!,
+		PORT: process.env.DB_PORT!,
+		PASSWORD: process.env.DB_PASSWORD!,
+		CACHE_TTL: process.env.DB_CACHE_TTL! // Time to live of the values cached from the adapter
 	}
 }

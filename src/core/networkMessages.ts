@@ -135,7 +135,7 @@ export function sendEventNetwork(sourceoid: string, oid: string, eid: string, bo
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(sourceoid)
         if (xmppClient) {
-            xmppClient.sendStanza(oid, body, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT, {}, { eid}, (err: boolean, message: JsonType) => {
+            xmppClient.sendStanza(oid, body, RequestOperation.SETPROPERTYVALUE, MessageType.EVENT, {}, { eid }, (err: boolean, message: JsonType) => {
                 if (err) {
                     reject(new MyError(message.error, message.status))
                 }

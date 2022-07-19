@@ -1,7 +1,7 @@
 /**
  * Interface to XMPP engine
  */
-import { MyError, HttpStatusCode } from '../utils'
+import { MyError, HttpStatusCode, logger } from '../utils'
 import { XMPP } from './xmpp.class'
 import { JsonType } from '../types/misc-types'
 import { agent } from '../connectors/agent-connector'
@@ -95,6 +95,7 @@ export const reloadRoster = async function (oid: string) {
  * Reload rosters for all XMPP clients
  */
 export const reloadAllRosters = async function () {
+    logger.debug('Reloading rosters for all XMPP clients')
     const keys = Array.from(clients.keys())
     for (let i = 0, l = keys.length; i < l; i++) {
         const xmpp = clients.get(keys[i])

@@ -1,4 +1,4 @@
-import { client, jid, xml } from '@xmpp/client'
+import { client, xml, jid as jidNs } from '@xmpp/client'
 import EventEmmiter from 'node:events'
 import crypto from 'crypto'
 import { XMPPMessage, XMPPErrorMessage, RosterItem, RequestOperation, MessageType, Options, SubscribeChannelOpt,  NotificationOpt, RecordStatusCode } from '../types/xmpp-types'
@@ -9,6 +9,9 @@ import { agent } from '../connectors/agent-connector'
 import { events } from './events'
 import { reloadAllRosters } from './xmpp'
 import { addRecord } from './records'
+import { signMessage, validateMessage } from './encryption'
+
+const debug = require('@xmpp/debug')
 
 export class XMPP {
 
@@ -26,6 +29,7 @@ export class XMPP {
   public constructor(oid: string, password: string) {
     this.oid = oid
     this.client = this.createClient(oid, password)
+    // debug(this.client, true)
     logger.info('AURORAL item with ID ' + this.oid + ' was added to the Node XMPP clients pool')
     // Listeners
     this.client.on('error', (err: unknown) => {
@@ -48,7 +52,9 @@ export class XMPP {
     this.client.start({}).catch(
       (err: unknown) => {
         const error = errorHandler(err)
+        // TODO consider test if not offline before running start()
         if (error.message !== 'Connection is not offline') {
+          console.log(err)
           logger.error('XMPP connection for oid ' + this.oid + ' could not be established')
           logger.error(error.message)
         }
@@ -85,8 +91,9 @@ export class XMPP {
       const message = xml(
         'message',
         { type: 'chat', to: jid },
-        xml('body', {}, JSON.stringify(payload)),
+        xml('body', {}, JSON.stringify(payload))
       )
+      message.append(xml('signature', {}, await signMessage(JSON.stringify(payload))))
       await this.client.send(message)
       logger.debug('Message sent by ' + this.oid + ' through XMPP network... Destination ' + destinationOid)
 
@@ -152,7 +159,7 @@ export class XMPP {
     this.rosterItemsJid.clear()
     for (let i = 0, l = rosterItems.length; i < l; i++) {
       this.rosterItemsJid.set(rosterItems[i].attrs.jid, rosterItems[i].attrs)
-      const userName = jid.jid(rosterItems[i].attrs.jid).getLocal() // Fix because 'username' is not always the same as 'name'
+      const userName = jidNs.jid(rosterItems[i].attrs.jid).getLocal() // Fix because 'username' is not always the same as 'name'
       this.rosterItemsOid.set(userName, rosterItems[i].attrs)
     }
   }
@@ -174,8 +181,10 @@ export class XMPP {
     const message = xml(
       'message',
       { type: 'chat', to: jid },
-      xml('body', {}, JSON.stringify(payload)),
+      xml('body', {}, JSON.stringify(payload))
     )
+    message.append(xml('signature', {}, await signMessage(JSON.stringify(payload))))
+
     await this.client.send(message)
   }
 
@@ -224,13 +233,35 @@ export class XMPP {
     if (type === 'error') {
       logger.debug(this.oid + ' receiving error response...')
       // logger.debug({ to, from })
-      const body = JSON.parse(stanza.getChild('error').text())
-      this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
-      return 
+      // TODO remove 
+      console.log('getchild: ' + stanza.getChild('error'))
+      if (stanza.getChild('error') && stanza.getChild('error').getChild('text')) {
+        logger.debug('ERROR: ' + stanza.getChild('error').text())
+        const body = JSON.parse(stanza.getChild('error').text())
+        this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
+        return 
+      } else {
+        // TODO: Here are thrown errors if other gtw is offline. It is non our 'standard' error, so it doesn't have JSON body
+        // We should handle this error in a better way -  but we need to know requestId
+        logger.error('Non standart ERROR recieved')
+      }
     }
     // NORMAL CHAT MESSAGE
     if (type === 'chat') {
+      // Validate signature of message
+      const oidFromJid =  jidNs.jid(from).getLocal()
       const body: XMPPMessage = JSON.parse(stanza.getChild('body').text())
+      // SIGNATURE test
+      if (stanza.getChild('signature')) {
+        const signature = stanza.getChild('signature').text() as string
+        console.log('Signature: ' + await validateMessage(oidFromJid, stanza.getChild('body').text(), signature))
+        if (!await validateMessage(oidFromJid, stanza.getChild('body').text(), signature)) {
+          logger.error('Invalid signature')
+          return
+        }
+      } else {
+        logger.warn('No signature found')
+      }
       const jid = this.rosterItemsOid.get(body.sourceOid)?.jid
       // Check if origin is in roster
       if (!jid) {

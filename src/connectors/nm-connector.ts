@@ -203,8 +203,25 @@ export const nm = {
      * @param ctid 
      * @returns jsonType
      */
-    getItemsInContract: async function(ctid: string): Promise<GenericResponse<JsonType>> {
+     getItemsInContract: async function(ctid: string): Promise<GenericResponse<JsonType>> {
         return request(`discovery/items/contract/${ctid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })  
+    },
+    /**
+     * Get remote agent AGID by oid of object 
+     * @param oid 
+     * @returns string
+     */
+    getAgidByOid: async function(oid: string): Promise<GenericResponse<string>> {
+        return request(`items/agid/${oid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })  
+    },
+    /**
+     * Retrieving public key of remote agent from NM
+     * @param agid 
+     * @returns string
+     */
+    getPubkey: async function(agid: string): Promise<GenericResponse<string>> {
+        logger.debug('Requesting pubkey from NM: ' + agid)
+        return request(`agent/key/${agid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })  
     }
 }
 
