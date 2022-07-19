@@ -11,8 +11,6 @@ import { reloadAllRosters } from './xmpp'
 import { addRecord } from './records'
 import { signMessage, validateMessage } from './encryption'
 
-const debug = require('@xmpp/debug')
-
 export class XMPP {
 
   // Class variables
@@ -29,7 +27,6 @@ export class XMPP {
   public constructor(oid: string, password: string) {
     this.oid = oid
     this.client = this.createClient(oid, password)
-    // debug(this.client, true)
     logger.info('AURORAL item with ID ' + this.oid + ' was added to the Node XMPP clients pool')
     // Listeners
     this.client.on('error', (err: unknown) => {
