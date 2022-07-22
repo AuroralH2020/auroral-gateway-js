@@ -189,7 +189,7 @@ export const nm = {
      * @returns jsonType
      */
     getNodesInCommunity: async function(commId: string): Promise<GenericResponse<JsonType>> {
-        return request(`discovery/nodes/comMunity/${commId}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
+        return request(`discovery/nodes/community/${commId}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
     },
     /**
      * Get items in my organisation
