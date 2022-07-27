@@ -52,10 +52,10 @@ export const sendRecords = async (): Promise<void> => {
             logger.debug('Sending records [' + String(recordStatuses.length) + ']')
             // TODO consider using a queue to send records
             const recordsToSend = [...records]
-            // Remove records to be sent (Splice to avoid removing recent records)
-            records = records.slice(0, recordsToSend.length)
             // Send records
             await nm.postCounters(recordsToSend)
+            // Remove records to be sent (Splice to avoid removing recent records)
+            records.splice(0, recordsToSend.length)
         } 
     } catch (err: unknown) {
         const error = errorHandler(err)

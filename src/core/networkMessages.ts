@@ -34,12 +34,12 @@ import { MessageType, RequestOperation } from '../types/xmpp-types'
  * @param oid 
  * @returns 
  */
-export function getPropertyNetwork(sourceOid: string, pid: string, oid: string): Promise<JsonType> {
+export function getPropertyNetwork(sourceOid: string, pid: string, oid: string, reqParams: JsonType): Promise<JsonType> {
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(sourceOid)
         if (xmppClient) {
             logger.debug('Sending get property request to ' + oid + ':' + pid)
-            xmppClient.sendStanza(oid, null, RequestOperation.GETPROPERTYVALUE, MessageType.REQUEST, { pid }, {}, (err: boolean, message: JsonType) => {
+            xmppClient.sendStanza(oid, null, RequestOperation.GETPROPERTYVALUE, MessageType.REQUEST, { pid }, { reqParams }, (err: boolean, message: JsonType) => {
                 if (err) {
                     reject(new MyError(message.error, message.status))
                 }
@@ -60,11 +60,11 @@ export function getPropertyNetwork(sourceOid: string, pid: string, oid: string):
  * @param body 
  * @returns 
  */
-export function putPropertyNetwork(sourceOid: string, pid: string, oid: string, body: JsonType): Promise<JsonType> {
+export function putPropertyNetwork(sourceOid: string, pid: string, oid: string, body: JsonType, reqParams: JsonType): Promise<JsonType> {
     return new Promise((resolve, reject) => {
         const xmppClient = clients.get(sourceOid)
         if (xmppClient) {
-            xmppClient.sendStanza(oid, body, RequestOperation.SETPROPERTYVALUE, MessageType.REQUEST, { pid }, {}, (err: boolean, message: JsonType) => {
+            xmppClient.sendStanza(oid, body, RequestOperation.SETPROPERTYVALUE, MessageType.REQUEST, { pid }, { reqParams }, (err: boolean, message: JsonType) => {
                 if (err) {
                     reject(message)
                 }

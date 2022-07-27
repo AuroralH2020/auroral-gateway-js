@@ -36,12 +36,12 @@ export const agent = {
      * @param oid 
      * @returns 
      */
-    getProperty: async function(sourceoid: string, pid: string, oid: string): Promise<GenericResponse<JsonType>> {
+    getProperty: async function(sourceoid: string, pid: string, oid: string, reqParams: JsonType): Promise<GenericResponse<JsonType>> {
         try {
             logger.debug('Getting property from agent: OID:' + oid + ' PID:' + pid)
             // const response = await request(`objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
             // const response = await Promise.resolve({ message: { test: 'ok' } }) as GenericResponse<any>
-            return await request(`objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid })
+            return await request(`objects/${oid}/properties/${pid}`, 'GET', undefined, { ...ApiHeader, 'sourceoid': sourceoid }, reqParams)
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Getproperty failed...')
@@ -56,10 +56,10 @@ export const agent = {
      * @param body 
      * @returns 
      */
-    putProperty: async function(sourceoid: string, pid: string, oid: string, body: JsonType): Promise<GenericResponse<JsonType>> {
+    putProperty: async function(sourceoid: string, pid: string, oid: string, body: JsonType, reqParams: JsonType): Promise<GenericResponse<JsonType>> {
         try {
             logger.debug('Putting property to agent: ' + oid + ' ' + pid)
-            return await request(`objects/${oid}/properties/${pid}`, 'PUT', body, { ...ApiHeader, 'sourceoid': sourceoid })
+            return await request(`objects/${oid}/properties/${pid}`, 'PUT', body, { ...ApiHeader, 'sourceoid': sourceoid }, reqParams)
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Putproperty failed...')
@@ -118,7 +118,7 @@ export const agent = {
 }
 
 // PRIVATE FUNCTIONS
-const request = async (endpoint: string, method: Method, json?: JsonType, headers?: Headers, searchParams?: string): Promise<GenericResponse> => {
+const request = async (endpoint: string, method: Method, json?: JsonType, headers?: Headers, searchParams?: JsonType): Promise<GenericResponse> => {
     const response = await callApi(endpoint, { method, json, headers, searchParams }) as unknown as Response<GenericResponse>
     return response.body
 }

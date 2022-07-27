@@ -37,7 +37,12 @@ describe('Registrations core', () => {
         const spy = jest.spyOn(Registrations, 'update')
         jest.spyOn(nm, 'getAgentItems').mockResolvedValue({ message: ['123','223'] })
         expect(await Registrations.update()).toBeUndefined()
-        expect(spy).toHaveBeenCalledTimes(1)
+        jest.spyOn(nm, 'getAgentItems').mockImplementation(
+            () => { 
+                throw new MyError('MOCKED ERROR') 
+            })
+        await expect(Registrations.update()).toBeDefined()
+        expect(spy).toHaveBeenCalledTimes(2)
     })
     it('Do isItemRegistered test', async () => {
         const spy = jest.spyOn(Registrations, 'isItemRegistered')

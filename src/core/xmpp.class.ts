@@ -74,8 +74,8 @@ export class XMPP {
       // Works in AURORAL, update for federated scenario!!! Same OID under different domain would be possible
       const jid = this.rosterItemsOid.get(destinationOid)?.jid
       if (!jid) {
-        logger.warn('Destination ' + destinationOid + ' is not in the roster of ' + this.oid)
-        throw new MyError('Destination OID not found in roster, aborting message', HttpStatusCode.NOT_FOUND)
+        logger.warn('Destination ' + destinationOid + ' is not in the roster of ' + this.oid + ' or it is offline')
+        throw new MyError('Destination OID not found in roster or it is offline, aborting message', HttpStatusCode.NOT_FOUND)
       }
 
       // Add random ID to the request
@@ -305,9 +305,9 @@ export class XMPP {
   private async processReq(key: RequestOperation, options: Options) {
     switch (key) {
       case RequestOperation.GETPROPERTYVALUE:
-        return (await agent.getProperty(options.originOid, options.pid, this.oid)).message
+        return (await agent.getProperty(options.originOid, options.pid, this.oid, options.reqParams)).message
       case RequestOperation.SETPROPERTYVALUE:
-        return (await agent.putProperty(options.originOid, options.pid, this.oid, options.body!)).message
+        return (await agent.putProperty(options.originOid, options.pid, this.oid, options.body!, options.reqParams)).message
       case RequestOperation.SUBSCRIBETOEVENTCHANNEL:
         return this.processChannelSubscription(options as SubscribeChannelOpt)
       case RequestOperation.UNSUBSCRIBEFROMEVENTCHANNEL:

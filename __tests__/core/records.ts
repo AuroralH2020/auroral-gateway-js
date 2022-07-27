@@ -36,6 +36,11 @@ describe('Records core', () => {
     it('Do sendRecords test', async () => {
         const spy = jest.spyOn(records, 'sendRecords')
         await records.sendRecords()
-        expect(spy).toHaveBeenCalledTimes(1)
+        jest.spyOn(nm, 'postCounters').mockImplementation(
+            () => {
+                throw new MyError('MOCKED ERROR')
+        })
+        await expect(records.sendRecords()).toBeDefined()
+        expect(spy).toHaveBeenCalledTimes(2)
     })
 })

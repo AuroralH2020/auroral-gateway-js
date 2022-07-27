@@ -84,18 +84,20 @@ export const discovery: CtrlSparqlDiscovery = async (req, res) => {
 
 // Resource consumption controllers
 
-type getPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string}, {}, {}, JsonType, { oid: string, password: string }>
+type getPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string}, {}, JsonType, JsonType, { oid: string, password: string }>
 
 export const getProperty: getPropertyCtrl = async (req, res) => {
     const { oid } = res.locals
     const params = req.params
+    const reqParams = req.query
     try {
+        console.log('reqParams: ' + JSON.stringify(reqParams))
         // test localy if the client exists
         logger.debug(`GetProperty request OID:${params.oid} PID:${params.pid}`)
-        const localResponse = await getPropertyLocaly(oid , params.pid, params.oid)
+        const localResponse = await getPropertyLocaly(oid , params.pid, params.oid, reqParams)
         if (!localResponse.success) {
              // if not, get the property from the network
-             const remoteResponse = await getPropertyNetwork(oid, params.pid, params.oid)
+             const remoteResponse = await getPropertyNetwork(oid, params.pid, params.oid, reqParams)
             return responseBuilder(HttpStatusCode.OK, res, null, [{ message: remoteResponse }] as JsonType)
         } else {
             return responseBuilder(HttpStatusCode.OK, res, null, localResponse.body)       
@@ -107,19 +109,21 @@ export const getProperty: getPropertyCtrl = async (req, res) => {
     }
 }
 
-type PutPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string }, JsonType, {}, JsonType, { oid: string, password: string }>
+type PutPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string }, JsonType, JsonType, JsonType, { oid: string, password: string }>
 
 export const putProperty: PutPropertyCtrl = async (req, res) => {
     const { oid } = res.locals
     const params = req.params
     const body = req.body
+    const reqParams = req.query
+
     try {
         // test localy if the client exists
         logger.debug(`PutProperty request OID:${params.oid} PID:${params.pid}`)
-        const localResponse = await putPropertyLocaly(oid , params.pid, params.oid, body)
+        const localResponse = await putPropertyLocaly(oid , params.pid, params.oid, body, reqParams)
         if (!localResponse.success) {
              // if not, get the property from the network
-             const remoteResponse = await putPropertyNetwork(oid, params.pid, params.oid, body)
+             const remoteResponse = await putPropertyNetwork(oid, params.pid, params.oid, body, reqParams)
             return responseBuilder(HttpStatusCode.OK, res, null, [{ message: remoteResponse }] as JsonType)
         } else {
             return responseBuilder(HttpStatusCode.OK, res, JSON.stringify(localResponse.body))       
