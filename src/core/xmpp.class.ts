@@ -251,8 +251,9 @@ export class XMPP {
       // SIGNATURE test
       if (stanza.getChild('signature')) {
         const signature = stanza.getChild('signature').text() as string
-        console.log('Signature: ' + await validateMessage(oidFromJid, stanza.getChild('body').text(), signature))
-        if (!await validateMessage(oidFromJid, stanza.getChild('body').text(), signature)) {
+        const validation =  await validateMessage(oidFromJid, stanza.getChild('body').text(), signature)
+        console.log('Signature validation: ' + validation)
+        if (!validation) {
           logger.error('Invalid signature')
           return
         }
