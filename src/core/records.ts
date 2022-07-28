@@ -49,7 +49,7 @@ export const sendRecords = async (): Promise<void> => {
     try {
         // Verify that there is something to send before sending to NM
         if (records.length > 0) {
-            logger.debug('Sending records [' + String(recordStatuses.length) + ']')
+            logger.debug('Sending records [' + String(records.length) + '] [size: ' + Buffer.byteLength(records.toString(), 'utf8') + ']')
             // TODO consider using a queue to send records
             const recordsToSend = [...records]
             // Send records

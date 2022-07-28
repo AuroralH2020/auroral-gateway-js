@@ -231,8 +231,7 @@ export class XMPP {
       logger.debug(this.oid + ' receiving error response...')
       // logger.debug({ to, from })
       // TODO remove 
-      console.log('getchild: ' + stanza.getChild('error'))
-      if (stanza.getChild('error') && stanza.getChild('error').getChild('text')) {
+      if (stanza.getChild('error') && !stanza.getChild('error').getChild('text')) {
         logger.debug('ERROR: ' + stanza.getChild('error').text())
         const body = JSON.parse(stanza.getChild('error').text())
         this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
@@ -240,7 +239,9 @@ export class XMPP {
       } else {
         // TODO: Here are thrown errors if other gtw is offline. It is non our 'standard' error, so it doesn't have JSON body
         // We should handle this error in a better way -  but we need to know requestId
-        logger.error('Non standart ERROR recieved')
+        logger.error('Non standard ERROR received')
+        logger.error(stanza.getChild('error'))
+        return
       }
     }
     // NORMAL CHAT MESSAGE
@@ -362,9 +363,7 @@ export class XMPP {
   }
 
   private async getSemanticInfo(options: Options) {
-    // const response = options.body && Object.keys(options.body).length > 0 ?
-        // await agent.discovery(options.originOid, this.oid, options.body) : 
-    const response = await agent.discovery(options.originOid, this.oid, undefined)
+    const response = await agent.discovery(options.originOid, this.oid, options.body ? options.body : undefined)
     if (response.error) {
       throw new MyError(response.error)
     }
