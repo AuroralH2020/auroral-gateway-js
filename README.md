@@ -1,3 +1,4 @@
+[![Quality Gate Status](https://sonar.bavenir.eu/api/project_badges/measure?project=auroral-js-gateway&metric=alert_status&token=squ_209c86b285af7fe433b94e069c3b5794302fe13b)](https://sonar.bavenir.eu/dashboard?id=auroral-js-gateway)
 # README #
 
 This README would normally document whatever steps are necessary to get your application up and running.
