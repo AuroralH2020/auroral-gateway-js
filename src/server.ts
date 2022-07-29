@@ -76,7 +76,7 @@ function shutdown() {
       }
       // Send remaining record counters to NM
       sendRecords()
-      .catch((err) => {
+      .catch((_err) => {
         logger.warn('Counters could not be stored...')
       })
       .finally(() => {

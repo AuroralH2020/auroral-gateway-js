@@ -1,10 +1,9 @@
-import { HttpStatusCode, logger, errorHandler, MyError } from '../utils'
+import { logger, errorHandler } from '../utils'
 import { RecordType, RecordStatus, RecordStatusCode, RequestOperation } from '../types/xmpp-types'
 import { nm } from '../connectors/nm-connector'
-import { Config } from '../config'
 
 // Variables
-let records: RecordType[] = []
+const records: RecordType[] = []
 const recordStatuses: RecordStatus[] = [RecordStatus.MESSAGE_NOT_SENT, RecordStatus.RESPONSE_NOT_RECEIVED, RecordStatus.MESSAGE_OK]
 let counter: number = 0
 const countersTimer: NodeJS.Timer = setInterval(() => {
@@ -40,7 +39,7 @@ export const addRecord = async (messageType: RequestOperation,
     // IF counter over 25 send records
     if (counter > 25) {
         counter = 0
-        // TODO consider await??
+        // run and forget
         sendRecords()
     }
 }
@@ -50,7 +49,7 @@ export const sendRecords = async (): Promise<void> => {
         // Verify that there is something to send before sending to NM
         if (records.length > 0) {
             logger.debug('Sending records [' + String(records.length) + '] [size: ' + Buffer.byteLength(records.toString(), 'utf8') + ']')
-            // TODO consider using a queue to send records
+            // Implement queue here ?
             const recordsToSend = [...records]
             // Send records
             await nm.postCounters(recordsToSend)
@@ -60,7 +59,6 @@ export const sendRecords = async (): Promise<void> => {
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error('Error storing counters' + error.message)
-        // throw new MyError('Error storing counters...:' + error.message)
     }
 }
 

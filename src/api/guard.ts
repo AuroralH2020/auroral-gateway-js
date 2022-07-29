@@ -33,10 +33,10 @@ import { HttpStatusCode, errorHandler, logger } from '../utils'
         // Check if item is registered locally
         Registrations.isItemRegistered(oid).then(result => {
             if (!result) {
-                // TODO enable check
-                // return responseBuilder(HttpStatusCode.UNAUTHORIZED, res, 'Items not registered under this gateway', null)
+                // Check if item is registered in this gtw
                 logger.warn(`Item ${oid} not registered under this gateway`)
-                next()
+                return responseBuilder(HttpStatusCode.UNAUTHORIZED, res, 'Items not registered under this gateway', null)
+                // next()
             } else {
                 next()
             }

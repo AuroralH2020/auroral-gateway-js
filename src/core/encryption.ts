@@ -127,7 +127,7 @@ async function getPubkey(agid: string): Promise<string> {
         let pubkey = await redisDb.get('pubkey' + agid)
         if (!pubkey) {
             logger.debug('Getting pubkey from NM')
-            pubkey = await (await nm.getPubkey(agid)).message
+            pubkey = (await nm.getPubkey(agid)).message
             redisDb.set('pubkey' + agid, pubkey, 60 * 60 * 24 * 7) // One week
         }
         return pubkey

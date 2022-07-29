@@ -132,7 +132,6 @@ export class XMPP {
       logger.error(error.message)
       await addRecord(requestOperation, 0, this.oid, destinationOid, '', RecordStatusCode.MESSAGE_NOT_SENT, true)
       callback(true, error)
-      // throw new MyError(error.message, HttpStatusCode.SERVICE_UNAVAILABLE)
     }
   }
 
@@ -333,7 +332,7 @@ export class XMPP {
       logger.debug('Sending notification to agent')
       await agent.notify(options.originOid, Config.GATEWAY.ID, options.nid, options.requestBody ? options.requestBody : {})
       // Notification -> reload all rosters
-      // TODO check if it is needed? (base on notif type)
+      // Reloading all rosters is maybe not necessary
       await reloadAllRosters()
     } catch (err) {
       const error = errorHandler(err)
