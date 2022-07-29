@@ -15,6 +15,7 @@ FROM base as develop
 WORKDIR /gateway
 COPY --chown=node:node package*.json tsconfig.json ./
 COPY --chown=node:node keystore/genkeys.sh /gateway/persistance/keystore/
+RUN echo "[]" >> /gateway/persistance/events.json
 
 RUN npm ci && npm cache clean --force
 

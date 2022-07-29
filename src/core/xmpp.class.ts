@@ -229,14 +229,12 @@ export class XMPP {
     // ERROR
     if (type === 'error') {
       logger.debug(this.oid + ' receiving error response...')
-      // logger.debug({ to, from })
-      // TODO remove 
-      if (stanza.getChild('error') && !stanza.getChild('error').getChild('text')) {
+      try {
         logger.debug('ERROR: ' + stanza.getChild('error').text())
         const body = JSON.parse(stanza.getChild('error').text())
         this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
         return 
-      } else {
+      } catch (error) {
         // TODO: Here are thrown errors if other gtw is offline. It is non our 'standard' error, so it doesn't have JSON body
         // We should handle this error in a better way -  but we need to know requestId
         logger.error('Non standard ERROR received')
@@ -305,6 +303,10 @@ export class XMPP {
   // Request handlers
 
   private async processReq(key: RequestOperation, options: Options) {
+    // TODO remove after java gtw is not used anymore
+    if (key.toString() === '12') {
+      return this.processNotification(options as NotificationOpt)
+    }
     switch (key) {
       case RequestOperation.GETPROPERTYVALUE:
         return (await agent.getProperty(options.originOid, options.pid, this.oid, options.reqParams)).message
@@ -321,13 +323,15 @@ export class XMPP {
       case RequestOperation.SENDNOTIFICATION:
           return this.processNotification(options as NotificationOpt)
       default:
+        logger.warn('Unknown request operation: ' + key)
         return null
     }
   }
 
   private async processNotification(options: NotificationOpt) {
     try {
-      await agent.notify(options.originOid, Config.GATEWAY.ID, options.nid, options.body ? options.body : {})
+      logger.debug('Sending notification to agent')
+      await agent.notify(options.originOid, Config.GATEWAY.ID, options.nid, options.requestBody ? options.requestBody : {})
       // Notification -> reload all rosters
       // TODO check if it is needed? (base on notif type)
       await reloadAllRosters()
