@@ -7,6 +7,7 @@ import { nm } from '../connectors/nm-connector'
 import { HttpStatusCode, errorHandler, logger, MyError } from '../utils'
 
 const mode = 'sha256'
+const auroraUser = 'auroral-dev-user'
 
 const privateKey = fs.readFileSync(path.join(Config.HOME_PATH, '/persistance/keystore/gateway-key.pem')).toString('utf8')
 
@@ -27,8 +28,8 @@ export async function signMessage(message: string): Promise<string> {
 export async function validateMessage(oid: string, message: string, signature: string): Promise<boolean> {
     try {
         logger.debug('Validating message signature...')
-        const agid = await getAgid(oid)
-        const pubkey = await getPubkey(agid)
+        
+        const pubkey = oid === auroraUser ?  await getPubkey(oid) : await getPubkey(await getAgid(oid))
         return crypto.verify(
             mode,
             Buffer.from(message),
