@@ -28,17 +28,25 @@ export async function signMessage(message: string): Promise<string> {
 export async function validateMessage(oid: string, message: string, signature: string): Promise<boolean> {
     try {
         logger.debug('Validating message signature...')
-        
-        const pubkey = oid === auroraUser ?  await getPubkey(oid) : await getPubkey(await getAgid(oid))
-        return crypto.verify(
+        let pubkey = oid === auroraUser ?  await getPubkey(oid) : await getPubkey(await getAgid(oid))
+        let validationResult = crypto.verify(
             mode,
             Buffer.from(message),
-            {
-              key: pubkey,
-              padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
-            },
+            { key: pubkey, padding: crypto.constants.RSA_PKCS1_PSS_PADDING },
             Buffer.from(signature, 'base64')
         )
+        // Retry with forcing reload of pubkey 
+        if (!validationResult) {
+            logger.warn('Validation failed - reloading pubkey from platform')
+            pubkey = oid === auroraUser ?  await getPubkey(oid, true) : await getPubkey(await getAgid(oid), true)
+            validationResult = crypto.verify(
+                mode,
+                Buffer.from(message),
+                { key: pubkey, padding: crypto.constants.RSA_PKCS1_PSS_PADDING },
+                Buffer.from(signature, 'base64')
+            )
+        }
+        return validationResult
     } catch (err) {
         const error = errorHandler(err)
         logger.error('Failed to validate message...', HttpStatusCode.BAD_REQUEST)
@@ -123,10 +131,10 @@ function encrypt(key: string, message: string, usePrivateKey: boolean): string {
     }
 }
 
-async function getPubkey(agid: string): Promise<string> {
+async function getPubkey(agid: string, forceReload = false): Promise<string> {
     try {
         let pubkey = await redisDb.get('pubkey' + agid)
-        if (!pubkey) {
+        if (!pubkey || forceReload) {
             logger.debug('Getting pubkey from NM')
             pubkey = (await nm.getPubkey(agid)).message
             redisDb.set('pubkey' + agid, pubkey, 60 * 60 * 24 * 7) // One week
