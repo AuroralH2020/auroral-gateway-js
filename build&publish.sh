@@ -21,7 +21,7 @@ GIT_REGISTRY=ghcr.io
 GIT_IMAGE_NAME=auroralh2020/auroral_gateway_js
 
 # Get configuration
-while getopts 'hd:v:' OPTION; do
+while getopts 'hd:v:l' OPTION; do
 case "$OPTION" in
     h)
     echo "$USAGE"
@@ -29,6 +29,9 @@ case "$OPTION" in
     ;;
     v)
     VERSION="$OPTARG"
+    ;;
+    l)
+    LATEST="1";
     ;;
 esac
 done
@@ -56,6 +59,13 @@ docker login ${REGISTRY}
 
 # Compile ts into js
 tsc
+if [ $? != 0 ] 
+then
+    echo "Error running tsc"
+    say 'Error running tsc'
+    exit 1;
+fi
+
 
 # Multiarch builder
 docker buildx use multiplatform
@@ -90,3 +100,4 @@ else
 fi
 # END
 echo Build and publish ended successfully!
+say 'Done!'
