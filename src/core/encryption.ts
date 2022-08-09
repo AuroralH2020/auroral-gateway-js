@@ -7,7 +7,7 @@ import { nm } from '../connectors/nm-connector'
 import { HttpStatusCode, errorHandler, logger, MyError } from '../utils'
 
 const mode = 'sha256'
-const auroraUser = 'auroral-dev-user'
+const auroraUserPrefix = 'auroral' // auroral-dev-user or auroral-user_n
 
 const privateKey = fs.readFileSync(path.join(Config.HOME_PATH, '/persistance/keystore/gateway-key.pem')).toString('utf8')
 
@@ -28,7 +28,7 @@ export async function signMessage(message: string): Promise<string> {
 export async function validateMessage(oid: string, message: string, signature: string): Promise<boolean> {
     try {
         logger.debug('Validating message signature...')
-        let pubkey = oid === auroraUser ?  await getPubkey(oid) : await getPubkey(await getAgid(oid))
+        let pubkey = senderIsPlatform(oid) ?  await getPubkey(oid) : await getPubkey(await getAgid(oid))
         let validationResult = crypto.verify(
             mode,
             Buffer.from(message),
@@ -38,7 +38,7 @@ export async function validateMessage(oid: string, message: string, signature: s
         // Retry with forcing reload of pubkey 
         if (!validationResult) {
             logger.warn('Validation failed - reloading pubkey from platform')
-            pubkey = oid === auroraUser ?  await getPubkey(oid, true) : await getPubkey(await getAgid(oid), true)
+            pubkey = senderIsPlatform(oid) ?  await getPubkey(oid, true) : await getPubkey(await getAgid(oid), true)
             validationResult = crypto.verify(
                 mode,
                 Buffer.from(message),
@@ -75,6 +75,10 @@ export async function decryptWithRemotePublicKey(oid: string, message: string): 
 }
 
 // private
+function senderIsPlatform(oid: string): boolean {
+    return oid.toLowerCase().includes(auroraUserPrefix)
+}
+
 function decrypt(key: string, message: string, usePrivateKey: boolean): string {
     try {
         if (usePrivateKey) {
