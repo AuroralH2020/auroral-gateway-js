@@ -245,7 +245,8 @@ export class XMPP {
     if (type === 'chat') {
       // Validate signature of message
       const oidFromJid =  jidNs.jid(from).getLocal()
-      const body: XMPPMessage = JSON.parse(stanza.getChild('body').text())
+      const body: XMPPMessage = this.fixCompatibility(JSON.parse(stanza.getChild('body').text()))
+      
       // SIGNATURE test
       if (stanza.getChild('signature')) {
         const signature = stanza.getChild('signature').text() as string
@@ -302,10 +303,6 @@ export class XMPP {
   // Request handlers
 
   private async processReq(key: RequestOperation, options: Options) {
-    // TODO remove after java gtw is not used anymore
-    if (key.toString() === '12') {
-      return this.processNotification(options as NotificationOpt)
-    }
     switch (key) {
       case RequestOperation.GETPROPERTYVALUE:
         return (await agent.getProperty(options.originOid, options.pid, this.oid, options.reqParams)).message
@@ -384,5 +381,21 @@ export class XMPP {
       // await this.respondStanzaWithError(body.sourceOid, from, body.requestId, body.requestOperation, error.message, error.status)
     }
   }
+  // Function to fix requestOperations number -> string
+  // only SENDNOTIFICATION is needed
+  // Remove after changing xmppNotifSender in NM (agent 3.0)
+  private fixCompatibility(body: XMPPMessage) {
+    if (typeof (body.requestOperation as any) === 'number') {
+     switch (body.requestOperation as any as number) {
+        case 12:
+          body.requestOperation = RequestOperation.SENDNOTIFICATION
+          break
+        default:
+          body.requestOperation = RequestOperation.UNKNOWN
+          break
+     }
+    }
+    return body
+  }
 
-}
+ }
