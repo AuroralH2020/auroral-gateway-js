@@ -384,6 +384,7 @@ export class XMPP {
   // Function to fix requestOperations number -> string
   // only SENDNOTIFICATION is needed
   // Remove after changing xmppNotifSender in NM (agent 3.0)
+  // In xmppNotifSender -> send string insteaf of number for reqOperation
   private fixCompatibility(body: XMPPMessage) {
     if (typeof (body.requestOperation as any) === 'number') {
      switch (body.requestOperation as any as number) {
