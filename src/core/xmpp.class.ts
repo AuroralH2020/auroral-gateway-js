@@ -260,15 +260,21 @@ export class XMPP {
         logger.warn('No signature found')
       }
       const jid = this.rosterItemsOid.get(body.sourceOid)?.jid
-      // Check if origin is in roster
-      if (!jid) {
-        logger.warn('Origin ' + body.sourceOid + ' is not in the roster of ' + this.oid + ' dropping message...')
-        return
-      }
-      // Check if attrs.from and body.originId are the same!!! Otherwise tampering attempt error
-      if (!from.includes(jid)) {
-        logger.error('Tampering attempt sourceOid: ' + jid + ' differs from real origin ' + from + '!!')
-        return
+      // Check if origin is in roster or is an admin user
+      // I.e. In AURORAL case auroral-* XMPP users are admins
+      // Check case Config.XMPP.ENVIRONMENT === "", should return false (Check in Config)
+      if (body.sourceOid.toLowerCase().includes(Config.XMPP.ENVIRONMENT)) {
+        logger.info('Incoming cloud notification from... ' + body.sourceOid)
+      } else {
+        if (!jid) {
+          logger.warn('Origin ' + body.sourceOid + ' is not in the roster of ' + this.oid + ' dropping message...')
+          return
+        }
+        // Check if attrs.from and body.originId are the same!!! Otherwise tampering attempt error
+        if (!from.includes(jid)) {
+          logger.error('Tampering attempt sourceOid: ' + jid + ' differs from real origin ' + from + '!!')
+          return
+        }
       }
       if (body.messageType === MessageType.REQUEST) {
         // If it is a request, respond to it with the same requestId

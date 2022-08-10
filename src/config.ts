@@ -4,7 +4,7 @@ import { logger } from './utils/logger'
 dotenv.config()
 if (
 	!process.env.NODE_ENV || !process.env.IP
-	|| !process.env.GTW_PORT
+	|| !process.env.GTW_PORT || !process.env.XMPP_ENVIRONMENT
 ) {
 	logger.error('Please provide valid .env configuration')
 	process.exit()
@@ -32,6 +32,7 @@ export const Config = {
 		DOMAIN: process.env.XMPP_DOMAIN!,
 		RESOURCE: process.env.XMPP_RESOURCE! || 'AuroralNode',
 		ROSTER_REFRESH: process.env.ROSTER_REFRESH || 300000, // Defaults 5 min
+		ENVIRONMENT: process.env.XMPP_ENVIRONMENT!,
 		SIGN_MESSAGES: process.env.SIGN_MESSAGES || true
 	},
 	EVENTS: {

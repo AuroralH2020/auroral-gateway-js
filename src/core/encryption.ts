@@ -7,7 +7,6 @@ import { nm } from '../connectors/nm-connector'
 import { HttpStatusCode, errorHandler, logger, MyError } from '../utils'
 
 const mode = 'sha256'
-const auroraUserPrefix = 'auroral' // auroral-dev-user or auroral-user_n
 
 const privateKey = fs.readFileSync(path.join(Config.HOME_PATH, '/persistance/keystore/gateway-key.pem')).toString('utf8')
 
@@ -76,7 +75,7 @@ export async function decryptWithRemotePublicKey(oid: string, message: string): 
 
 // private
 function senderIsPlatform(oid: string): boolean {
-    return oid.toLowerCase().includes(auroraUserPrefix)
+    return oid.toLowerCase().includes(Config.XMPP.ENVIRONMENT)
 }
 
 function decrypt(key: string, message: string, usePrivateKey: boolean): string {
