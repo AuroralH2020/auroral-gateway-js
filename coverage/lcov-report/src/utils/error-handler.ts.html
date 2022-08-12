@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.31% </span>
+                <span class="strong">76.47% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>23/29</span>
+                <span class='fraction'>26/34</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">69.23% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/12</span>
+                <span class='fraction'>9/13</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76.92% </span>
+                <span class="strong">74.19% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>20/26</span>
+                <span class='fraction'>23/31</span>
             </div>
         
             
@@ -129,10 +129,20 @@
 <a name='L64'></a><a href='#L64'>64</a>
 <a name='L65'></a><a href='#L65'>65</a>
 <a name='L66'></a><a href='#L66'>66</a>
-<a name='L67'></a><a href='#L67'>67</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -163,13 +173,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -199,7 +217,8 @@
  * Error handler
  */
 &nbsp;
- import { HttpStatusCode } from './http-status-codes'
+ import { HTTPError } from 'got/dist/source'
+import { HttpStatusCode } from './http-status-codes'
  import { logger } from './logger'
 &nbsp;
  type CustomError = {
@@ -228,23 +247,31 @@
 }
  
  export const errorHandler = (err: unknown): CustomError =&gt; {
-    if (err instanceof MyError) {
-        return err
-    } else if (err instanceof Error) {
-         return {
-            ...err, // Workaround for ErrnoException type (code, path, syscall, stack, ...)
-            message: err.message,
-            status: getStatus(err.message)
+    try {
+        if (err instanceof MyError) {
+            return err
+        } else <span class="missing-if-branch" title="if path not taken" >I</span>if (err instanceof HTTPError) {
+<span class="cstat-no" title="statement not covered" >            return {</span>
+                message: (err.response.body as { error: string }).error,
+                status: err.response.statusCode,
+            } 
+        } else if (err instanceof Error) {
+             return {
+                ...err, // Workaround for ErrnoException type (code, path, syscall, stack, ...)
+                message: err.message,
+                status: getStatus(err.message)
+             }
          }
-     } else <span class="missing-if-branch" title="else path not taken" >E</span>{
-<span class="cstat-no" title="statement not covered" >         logger.warn('Caught unexpected error type...')</span>
-<span class="cstat-no" title="statement not covered" >         logger.warn('Error type: ' + typeof err)</span>
-<span class="cstat-no" title="statement not covered" >         return {</span>
-             message: 'Server error',
-             status: HttpStatusCode.INTERNAL_SERVER_ERROR
-         }
-     }
- }
+<span class="cstat-no" title="statement not covered" >        throw new Error('Unknown error')</span>
+    } catch {
+<span class="cstat-no" title="statement not covered" >        logger.warn('Caught unexpected error type (' + typeof Error + ')...')</span>
+<span class="cstat-no" title="statement not covered" >        logger.error(err)</span>
+<span class="cstat-no" title="statement not covered" >        return {</span>
+            message: 'Server error',
+            status: HttpStatusCode.INTERNAL_SERVER_ERROR
+        }
+    }
+}
  
  // Private functions
  
@@ -268,7 +295,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2022-07-27T12:44:48.392Z
+                at 2022-08-12T07:35:31.175Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

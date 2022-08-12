@@ -19,8 +19,8 @@ export async function signMessage(message: string): Promise<string> {
           }).toString('base64')
     } catch (err) {
         const error = errorHandler(err)
-        logger.error('Failed to sign...', HttpStatusCode.BAD_REQUEST)
-        throw new MyError(error.message)
+        logger.error('Failed to sign...')
+        throw new MyError(error.message, error.status)
     }
 }
 
@@ -48,8 +48,8 @@ export async function validateMessage(oid: string, message: string, signature: s
         return validationResult
     } catch (err) {
         const error = errorHandler(err)
-        logger.error('Failed to validate message...', HttpStatusCode.BAD_REQUEST)
-        throw new MyError(error.message)
+        logger.error('Failed to validate message...')
+        throw new MyError(error.message, error.status)
     }
 }
 
@@ -101,8 +101,8 @@ function decrypt(key: string, message: string, usePrivateKey: boolean): string {
         }
     } catch (err) {
         const error = errorHandler(err)
-        logger.error('Failed to decrypt: ' + error.message, HttpStatusCode.BAD_REQUEST)
-        throw new MyError(error.message)
+        logger.error('Failed to decrypt: ' + error.message)
+        throw new MyError(error.message, error.status)
     }
 }
 
@@ -129,8 +129,8 @@ function encrypt(key: string, message: string, usePrivateKey: boolean): string {
         }
     } catch (err) {
         const error = errorHandler(err)
-        logger.error('Failed to encrypt: ' + error.message, HttpStatusCode.BAD_REQUEST)
-        throw new MyError(error.message)
+        logger.error('Failed to encrypt: ' + error.message)
+        throw new MyError(error.message, error.status)
     }
 }
 
@@ -146,7 +146,7 @@ async function getPubkey(agid: string, forceReload = false): Promise<string> {
     } catch (err) {
         const error = errorHandler(err)
         logger.error('Failed to get pubkey...', HttpStatusCode.BAD_REQUEST)
-        throw new MyError(error.message)
+        throw new MyError(error.message, error.status)
     }
 }
 
@@ -162,6 +162,6 @@ async function getAgid(oid: string): Promise<string> {
     } catch (err) {
         const error = errorHandler(err)
         logger.error('Failed to get agid...', HttpStatusCode.BAD_REQUEST)
-        throw new MyError(error.message)
+        throw new MyError(error.message, error.status)
     }
 }

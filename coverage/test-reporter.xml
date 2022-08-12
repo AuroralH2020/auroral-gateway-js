@@ -1,83 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testExecutions version="1">
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/core/networkMessages.ts">
-        <testCase name="NetworkMessages core Do addSubscriberNetwork test" duration="63"/>
-        <testCase name="NetworkMessages core Do getPropertyNetwork test" duration="2"/>
-        <testCase name="NetworkMessages core Do putPropertyNetwork test" duration="2"/>
-        <testCase name="NetworkMessages core Do removeSubscriberNetwork test" duration="3"/>
-        <testCase name="NetworkMessages core Do getEventChannelStatusNetwork test" duration="2"/>
-        <testCase name="NetworkMessages core Do sendEventNetwork test" duration="9"/>
-        <testCase name="NetworkMessages core Do getObjectInfoNetwork test" duration="2"/>
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/core/encryption.ts">
+        <testCase name="encryption core Do signMessage" duration="2"/>
+        <testCase name="encryption core Do validateMessage" duration="9"/>
+        <testCase name="encryption core Do encryptWithRemotePublicKey" duration="2"/>
+        <testCase name="encryption core Do encryptWithMyPrivateKey" duration="1"/>
+        <testCase name="encryption core Do decryptWithMyPrivateKey" duration="1"/>
+        <testCase name="encryption core Do decryptWithRemotePublicKey" duration="1"/>
     </file>
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/core/events.ts">
-        <testCase name="Events core Do createEventChannel test" duration="2"/>
-        <testCase name="Events core Do removeEventChannel test" duration="1"/>
-        <testCase name="Events core Do getEventChannelsNames test" duration="4"/>
-        <testCase name="Events core Do getSubscribers test" duration="1"/>
-        <testCase name="Events core Do addSubscriber test" duration="1"/>
-        <testCase name="Events core Do removeSubscriber test" duration="1"/>
-        <testCase name="Events core Do channelStatus test" duration="1"/>
-        <testCase name="Events core Do sendEvent test" duration="7"/>
-        <testCase name="Events core Do storeEventChannelsToFile test" duration="1"/>
-        <testCase name="Events core Do loadEventChannelsFromFile test" duration="1"/>
-    </file>
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/core/properties.ts">
-        <testCase name="Properties core Do getPropertyLocaly test" duration="6"/>
-        <testCase name="Properties core Do putPropertyLocaly test" duration="3"/>
-    </file>
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/core/xmpp.class.ts">
-        <testCase name="xmpp.class core Do start test" duration="1"/>
-    </file>
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/core/registrations.ts">
-        <testCase name="Registrations core Do start test" duration="1"/>
-        <testCase name="Registrations core Do update test" duration="1"/>
-        <testCase name="Registrations core Do isItemRegistered test" duration="0"/>
-    </file>
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/connectors/nm-connector.ts">
-        <testCase name="agent-connector Do handshake" duration="9"/>
-        <testCase name="agent-connector Do getCounters" duration="7"/>
-        <testCase name="agent-connector Do postCounters" duration="1"/>
-        <testCase name="agent-connector Do getItemRoster" duration="1"/>
-        <testCase name="agent-connector Do registerItems" duration="2"/>
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/connectors/nm-connector.ts">
+        <testCase name="agent-connector Do handshake" duration="6"/>
+        <testCase name="agent-connector Do getCounters" duration="13"/>
+        <testCase name="agent-connector Do postCounters" duration="2"/>
+        <testCase name="agent-connector Do getItemRoster" duration="2"/>
+        <testCase name="agent-connector Do registerItems" duration="1"/>
         <testCase name="agent-connector Do removeItems" duration="1"/>
-        <testCase name="agent-connector Do modifyItems" duration="1"/>
-        <testCase name="agent-connector Do deleteAgent" duration="3"/>
+        <testCase name="agent-connector Do modifyItems" duration="2"/>
+        <testCase name="agent-connector Do deleteAgent" duration="1"/>
         <testCase name="agent-connector Do getAgentItems" duration="1"/>
-        <testCase name="agent-connector Do getAgentPrivacy" duration="1"/>
+        <testCase name="agent-connector Do getAgentPrivacy" duration="2"/>
         <testCase name="agent-connector Do getCidFromReqid" duration="1"/>
         <testCase name="agent-connector Do getPartners" duration="1"/>
-        <testCase name="agent-connector Do getPartner" duration="1"/>
+        <testCase name="agent-connector Do getPartner" duration="4"/>
         <testCase name="agent-connector Do getContractedItemsByCid" duration="1"/>
-        <testCase name="agent-connector Do getCommunities" duration="1"/>
+        <testCase name="agent-connector Do getCommunities" duration="2"/>
         <testCase name="agent-connector Do getNodesInMyOrganisation" duration="1"/>
         <testCase name="agent-connector Do getNodesMyOrganisation" duration="1"/>
         <testCase name="agent-connector Do getNodesInOrganisation" duration="1"/>
         <testCase name="agent-connector Do getNodesInCommunity" duration="1"/>
         <testCase name="agent-connector Do getItemsInMyOrganisation" duration="1"/>
         <testCase name="agent-connector Do getItemsInContract" duration="1"/>
-        <testCase name="agent-connector Do getAgidByOid" duration="2"/>
-        <testCase name="agent-connector Do getPubkey" duration="2"/>
+        <testCase name="agent-connector Do getAgidByOid" duration="1"/>
+        <testCase name="agent-connector Do getPubkey" duration="5"/>
     </file>
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/core/security.ts">
-        <testCase name="Security core Do start test" duration="2"/>
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/core/networkMessages.ts">
+        <testCase name="NetworkMessages core Do addSubscriberNetwork test" duration="2"/>
+        <testCase name="NetworkMessages core Do getPropertyNetwork test" duration="1"/>
+        <testCase name="NetworkMessages core Do putPropertyNetwork test" duration="1"/>
+        <testCase name="NetworkMessages core Do removeSubscriberNetwork test" duration="0"/>
+        <testCase name="NetworkMessages core Do getEventChannelStatusNetwork test" duration="0"/>
+        <testCase name="NetworkMessages core Do sendEventNetwork test" duration="2"/>
+        <testCase name="NetworkMessages core Do getObjectInfoNetwork test" duration="1"/>
     </file>
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/core/encryption.ts">
-        <testCase name="encryption core Do signMessage" duration="2"/>
-        <testCase name="encryption core Do validateMessage" duration="5"/>
-        <testCase name="encryption core Do encryptWithRemotePublicKey" duration="2"/>
-        <testCase name="encryption core Do encryptWithMyPrivateKey" duration="1"/>
-        <testCase name="encryption core Do decryptWithMyPrivateKey" duration="1"/>
-        <testCase name="encryption core Do decryptWithRemotePublicKey" duration="1"/>
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/core/events.ts">
+        <testCase name="Events core Do createEventChannel test" duration="2"/>
+        <testCase name="Events core Do removeEventChannel test" duration="1"/>
+        <testCase name="Events core Do getEventChannelsNames test" duration="1"/>
+        <testCase name="Events core Do getSubscribers test" duration="1"/>
+        <testCase name="Events core Do addSubscriber test" duration="1"/>
+        <testCase name="Events core Do removeSubscriber test" duration="1"/>
+        <testCase name="Events core Do channelStatus test" duration="1"/>
+        <testCase name="Events core Do sendEvent test" duration="5"/>
+        <testCase name="Events core Do storeEventChannelsToFile test" duration="1"/>
+        <testCase name="Events core Do loadEventChannelsFromFile test" duration="4"/>
     </file>
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/core/records.ts">
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/core/properties.ts">
+        <testCase name="Properties core Do getPropertyLocaly test" duration="3"/>
+        <testCase name="Properties core Do putPropertyLocaly test" duration="1"/>
+    </file>
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/core/registrations.ts">
+        <testCase name="Registrations core Do start test" duration="2"/>
+        <testCase name="Registrations core Do update test" duration="1"/>
+        <testCase name="Registrations core Do isItemRegistered test" duration="1"/>
+    </file>
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/core/xmpp.class.ts">
+        <testCase name="xmpp.class core Do start test" duration="1"/>
+    </file>
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/core/records.ts">
         <testCase name="Records core Do addRecord test" duration="2"/>
         <testCase name="Records core Do sendRecords test" duration="2"/>
     </file>
-    <file path="/Users/peterdrahovsky/Documents/bavenir/AURORAL/gateway-js/__tests__/connectors/agent-connector.ts">
-        <testCase name="agent-connector Do getProperty" duration="12"/>
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/connectors/agent-connector.ts">
+        <testCase name="agent-connector Do getProperty" duration="9"/>
         <testCase name="agent-connector Do putProperty" duration="4"/>
-        <testCase name="agent-connector Do putEvent" duration="5"/>
-        <testCase name="agent-connector Do discovery" duration="5"/>
-        <testCase name="agent-connector Do notify" duration="4"/>
+        <testCase name="agent-connector Do putEvent" duration="3"/>
+        <testCase name="agent-connector Do discovery" duration="4"/>
+        <testCase name="agent-connector Do notify" duration="3"/>
+    </file>
+    <file path="/Users/peter/Documents/bavenir/AURORAL/gateway-js/__tests__/core/security.ts">
+        <testCase name="Security core Do start test" duration="9"/>
     </file>
 </testExecutions>

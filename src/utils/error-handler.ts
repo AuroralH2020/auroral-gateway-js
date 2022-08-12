@@ -49,8 +49,8 @@ import { HttpStatusCode } from './http-status-codes'
          }
         throw new Error('Unknown error')
     } catch {
-        logger.warn('Caught unexpected error type...')
-        logger.warn('Error type: ' + typeof err)
+        logger.warn('Caught unexpected error type (' + typeof Error + ')...')
+        logger.error(err)
         return {
             message: 'Server error',
             status: HttpStatusCode.INTERNAL_SERVER_ERROR

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">13.72% </span>
+                <span class="strong">9.8% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>14/102</span>
+                <span class='fraction'>10/102</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">6.66% </span>
+                <span class="strong">3.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/30</span>
+                <span class='fraction'>1/30</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">12.5% </span>
+                <span class="strong">6.25% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/48</span>
+                <span class='fraction'>3/48</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">13.72% </span>
+                <span class="strong">9.8% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>14/102</span>
+                <span class='fraction'>10/102</span>
             </div>
         
             
@@ -490,13 +490,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -528,13 +528,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -786,7 +786,7 @@ export const redisDb = {
     */
    health: <span class="fstat-no" title="function not covered" >(): Promise&lt;boolean&gt; =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >     return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve, reject) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >       client.ping(<span class="fstat-no" title="function not covered" >(e</span>rr, reply) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >       client.ping(<span class="fstat-no" title="function not covered" >(e</span>rr, _reply) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >         if (err) {</span>
 <span class="cstat-no" title="statement not covered" >           logger.error(err.message)</span>
 <span class="cstat-no" title="statement not covered" >           reject(err)</span>
@@ -806,7 +806,7 @@ export const redisDb = {
     * @returns {string}
     */
    save: <span class="fstat-no" title="function not covered" >(): Promise&lt;string | boolean&gt; =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >     return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve, reject) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >     return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve, _reject) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >       client.save(<span class="fstat-no" title="function not covered" >(e</span>rr, reply) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >         if (err) {</span>
 <span class="cstat-no" title="statement not covered" >           logger.warn(err)</span>
@@ -850,7 +850,7 @@ export const redisDb = {
     */
    remove: <span class="fstat-no" title="function not covered" >(k</span>ey: string): Promise&lt;boolean&gt; =&gt; {
 <span class="cstat-no" title="statement not covered" >     return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve, reject) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >       client.del(key, <span class="fstat-no" title="function not covered" >(e</span>rr, reply) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >       client.del(key, <span class="fstat-no" title="function not covered" >(e</span>rr, _reply) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >         if (err) {</span>
 <span class="cstat-no" title="statement not covered" >           logger.error(err.message)</span>
 <span class="cstat-no" title="statement not covered" >           reject(err)</span>
@@ -867,14 +867,14 @@ export const redisDb = {
     * @param {string} key
     * @returns {string}
     */
-   get: (key: string): Promise&lt;string | null&gt; =&gt; {
-     return new Promise((resolve, reject) =&gt; {
-       client.get(key, (err, reply) =&gt; {
-         <span class="missing-if-branch" title="if path not taken" >I</span>if (err) {
+   get: <span class="fstat-no" title="function not covered" >(k</span>ey: string): Promise&lt;string | null&gt; =&gt; {
+<span class="cstat-no" title="statement not covered" >     return new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve, reject) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >       client.get(key, <span class="fstat-no" title="function not covered" >(e</span>rr, reply) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >         if (err) {</span>
 <span class="cstat-no" title="statement not covered" >           logger.error(err.message)</span>
 <span class="cstat-no" title="statement not covered" >           reject(err)</span>
          } else {
-           resolve(reply)
+<span class="cstat-no" title="statement not covered" >           resolve(reply)</span>
          }
        })
      })
@@ -1090,7 +1090,7 @@ export const redisDb = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2022-07-27T12:44:48.392Z
+                at 2022-08-12T07:35:31.175Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
