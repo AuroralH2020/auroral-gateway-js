@@ -53,6 +53,7 @@ ApiRouter
 .get('/discovery/nodes/community/:commid', basicAuth(), nm_ctrl.getNodesInCommunity) // communityNodes
 .get('/discovery/items/organisation', basicAuth(), nm_ctrl.getItemsInMyOrganisation) // organisationItems
 .get('/discovery/items/contract/:ctid', basicAuth(), nm_ctrl.getItemsInContract) // contractItems
+.get('/discovery/items/contract/:ctid/origin/:oid', basicAuth(), nm_ctrl.getItemsInContract) // contractItems
 .post('/objects/:oid', basicAuth(), cs_ctrl.discovery) // discoveryRemote
 .get('/agents/cid/:reqid', basicAuth(), nm_ctrl.getCidFromReqid) // getCid
 .get('/agents/partners', basicAuth(), nm_ctrl.getPartners) // getPartners

@@ -203,8 +203,12 @@ export const nm = {
      * @param ctid 
      * @returns jsonType
      */
-     getItemsInContract: async function(ctid: string): Promise<GenericResponse<JsonType>> {
-        return request(`discovery/items/contract/${ctid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })  
+     getItemsInContract: async function(ctid: string, oid?: string): Promise<GenericResponse<JsonType>> {
+        if (oid) {
+            return request(`discovery/items/contract/${ctid}/origin/${oid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
+        } else {
+            return request(`discovery/items/contract/${ctid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
+        }
     },
     /**
      * Get remote agent AGID by oid of object 
