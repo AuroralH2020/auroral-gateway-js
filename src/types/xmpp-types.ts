@@ -24,7 +24,6 @@ export enum RequestOperation {
   UNKNOWN = 'Unknown'
 }
 
-
 export enum RecordStatusCode {
   MESSAGE_NOT_SENT = 1,
   RESPONSE_NOT_RECEIVED = 2,
