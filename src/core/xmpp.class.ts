@@ -107,7 +107,7 @@ export class XMPP {
             await addRecord(requestOperation, requestId, this.oid, destinationOid, '', RecordStatusCode.RESPONSE_NOT_RECEIVED, true)
             callback(error, message2)
           }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (' + Config.NM.TIMEOUT + ')', status: HttpStatusCode.REQUEST_TIMEOUT }, callback
-        )
+        ) 
         this.msgTimeouts.set(requestId, timeout) // Add to timeout list
         this.msgEvents.on(String(requestId), async (data) => {
           // Cancel timeout
@@ -229,15 +229,21 @@ export class XMPP {
     if (type === 'error') {
       logger.debug(this.oid + ' receiving error response...')
       try {
-        logger.debug('ERROR: ' + stanza.getChild('error').text())
         const body = JSON.parse(stanza.getChild('error').text())
         this.msgEvents.emit(String(body.requestId), { error: body.errorMessage, status: body.statusCode })
         return 
       } catch (error) {
-        // TODO: Here are thrown errors if other gtw is offline. It is non our 'standard' error, so it doesn't have JSON body
+        //  Here are thrown errors if other gtw is offline. It is non our 'standard' error, so it doesn't have JSON body
         // We should handle this error in a better way -  but we need to know requestId
-        logger.error('Non standard ERROR received')
-        logger.error(stanza.getChild('error'))
+        try {
+          if (stanza.getChild('error').attrs.code === '503') {
+            const body = JSON.parse(stanza.getChild('body').text())
+            logger.error('Remote gateway is offline')
+            this.msgEvents.emit(String(body.requestId), { error: 'Destination not reachable', status: HttpStatusCode.SERVICE_UNAVAILABLE })
+          }
+        } catch (error) {
+          logger.error('Non standard ERROR received')
+        }
         return
       }
     }

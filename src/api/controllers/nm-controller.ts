@@ -143,11 +143,11 @@ export const getItemsInMyOrganisation: getItemsInMyOrganisationCtrl = async (_re
         }
 }
 
-type getItemsInContractCtrl = expressTypes.Controller<{ ctid: string }, {}, {}, GtwUpdateResponse[], {}>
+type getItemsInContractCtrl = expressTypes.Controller<{ ctid: string, oid?: string }, {}, {}, GtwUpdateResponse[], {}>
 export const getItemsInContract: getItemsInContractCtrl = async (req, res) => {
-        const { ctid } = req.params
+        const { ctid, oid } = req.params
         try {
-                const response = await nm.getItemsInContract(ctid)
+                const response = await nm.getItemsInContract(ctid, oid)
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)
         } catch (err) {
                 const error = errorHandler(err)
