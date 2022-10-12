@@ -21,7 +21,7 @@ export class XMPP {
   private rosterReloadTimer: NodeJS.Timer | undefined = undefined
   private msgTimeouts: Map<number, NodeJS.Timeout> = new Map<number, NodeJS.Timeout>() // Timers to timeout requests
   private msgEvents: EventEmmiter = new EventEmmiter() // Handles events inside this class
-  // private eventChannels: Map<string, EventHandler> = new Map<string, EventHandler>()
+  private blacklistedSenders: Set<string> = new Set<string>() // Blacklisted senders - removed on roster reload
   public client
 
   public constructor(oid: string, password: string) {
@@ -102,12 +102,12 @@ export class XMPP {
       } else {
         // IN CASE OF REQUEST -- Waiting for event response or timeout
         const timeout = setTimeout(
-          async (error, message2) => {
+          async (error: boolean, message2: JsonType<any>) => {
             this.msgEvents.removeAllListeners(String(requestId))
             await addRecord(requestOperation, requestId, this.oid, destinationOid, '', RecordStatusCode.RESPONSE_NOT_RECEIVED, true)
             callback(error, message2)
           }, Number(Config.NM.TIMEOUT), true, { error: 'Timeout awaiting response (' + Config.NM.TIMEOUT + ')', status: HttpStatusCode.REQUEST_TIMEOUT }, callback
-        ) 
+        )  as unknown as NodeJS.Timeout
         this.msgTimeouts.set(requestId, timeout) // Add to timeout list
         this.msgEvents.on(String(requestId), async (data) => {
           // Cancel timeout
@@ -147,10 +147,14 @@ export class XMPP {
 
   // @TBD improve this function by calculating the difference and adding/removing items based on that
   // This way we do not remove from roster any items that should be there for any amount of time
-  public async reloadRoster() {
+  // parameter for removing blacklist - default true
+  public async reloadRoster(cleanBlacklist = true) {
     logger.info('Reloading roster of oid ' + this.oid + '...')
     const roster = await this.client.iqCaller.get(xml('query', 'jabber:iq:roster'))
     const rosterItems = roster.getChildren('item', 'jabber:iq:roster')
+    if (cleanBlacklist) {
+      this.blacklistedSenders.clear()
+    }
     this.rosterItemsOid.clear()
     this.rosterItemsJid.clear()
     for (let i = 0, l = rosterItems.length; i < l; i++) {
@@ -257,31 +261,24 @@ export class XMPP {
       if (stanza.getChild('signature')) {
         const signature = stanza.getChild('signature').text() as string
         const validation =  await validateMessage(oidFromJid, stanza.getChild('body').text(), signature)
-        console.log('Signature validation: ' + validation)
+        logger.debug('Signature validation: ' + validation)
         if (!validation) {
           logger.error('Invalid signature')
+          this.msgEvents.emit(String(body.requestId), { error: 'Invalid signature', status: HttpStatusCode.FORBIDDEN })
           return
         }
       } else {
         logger.warn('No signature found')
       }
-      const jid = this.rosterItemsOid.get(body.sourceOid)?.jid
-      // Check if origin is in roster or is an admin user
-      // I.e. In AURORAL case auroral-* XMPP users are admins
-      // Check case Config.XMPP.ENVIRONMENT === "", should return false (Check in Config)
-      if (body.sourceOid.toLowerCase().includes(Config.XMPP.ENVIRONMENT)) {
-        logger.info('Incoming cloud notification from... ' + body.sourceOid)
+      // check sender (tampering, is in roster,...)
+      if (await this.verifySender(body.sourceOid, from)) {
+        logger.debug('Valid sender')
       } else {
-        if (!jid) {
-          logger.warn('Origin ' + body.sourceOid + ' is not in the roster of ' + this.oid + ' dropping message...')
-          return
-        }
-        // Check if attrs.from and body.originId are the same!!! Otherwise tampering attempt error
-        if (!from.includes(jid)) {
-          logger.error('Tampering attempt sourceOid: ' + jid + ' differs from real origin ' + from + '!!')
-          return
-        }
+        logger.error('Invalid sender')
+        this.msgEvents.emit(String(body.requestId), { error: 'You are not in roster of this object', status: HttpStatusCode.FORBIDDEN })
+        return
       }
+
       if (body.messageType === MessageType.REQUEST) {
         // If it is a request, respond to it with the same requestId
         logger.debug(this.oid + ' receiving remote message request...')
@@ -312,6 +309,48 @@ export class XMPP {
     logger.debug('Gateway received unknown message type: ' + type)
   }
 
+  // check if sender is in roster + check tampering and relaods roster if needed
+  private async verifySender(sourceOid: string, from: string): Promise<boolean> {
+    // check if sender is in roster
+    let jid = this.rosterItemsOid.get(sourceOid)?.jid
+    // Platform notification - valid
+    if (sourceOid.toLowerCase().includes(Config.XMPP.ENVIRONMENT)) {
+      logger.info('Incoming cloud notification from... ' + sourceOid)
+      return true
+    }
+    if (!jid) {
+      // if not in roster, reload roster and retry
+      if (!this.blacklistedSenders.has(sourceOid)) {
+        logger.warn('Origin ' + sourceOid + ' is not in the roster of ' + this.oid + ', reloading roster...')
+        await this.reloadRoster(false)
+        jid = this.rosterItemsOid.get(sourceOid)?.jid
+        if (jid) {
+          // If in roster return with tampering validation
+          return this.isTampering(from, jid)
+        } else {
+          // If not in roster blacklist and reject
+          this.blacklistedSenders.add(sourceOid)
+          return false
+        }
+      } else {
+        // Case it was already blacklisted
+        logger.debug('Access attemp of blacklisted OID: ' + sourceOid)
+        return false
+      }
+    } else {
+      // If in roster return with tampering validation
+      return this.isTampering(from, jid)
+    }
+  }
+
+  private isTampering (from: string, jid?: string) {
+    if (!jid || !from.includes(jid)) {
+      logger.error('Tampering attempt sourceOid: ' + jid + ' differs from real origin ' + from + '!!')
+      return false
+    }
+    return true
+  }
+
   // Request handlers
 
   private async processReq(key: RequestOperation, options: Options) {
@@ -326,6 +365,8 @@ export class XMPP {
         return this.processChannelUnsubscription(options as SubscribeChannelOpt)
       case RequestOperation.GETEVENTCHANNELSTATUS:
         return this.processChannelStatus(options as SubscribeChannelOpt)
+        case RequestOperation.GETLISTOFEVENTS:
+        return this.processEventList()
       case RequestOperation.GETTHINGDESCRIPTION:
         return this.getSemanticInfo(options)
       case RequestOperation.SENDNOTIFICATION:
@@ -372,6 +413,14 @@ export class XMPP {
       throw new MyError('Object not found', HttpStatusCode.BAD_REQUEST)
     }
     return ({ ...response.body })
+  }
+
+  private processEventList() {
+    const response = events.getEventChannelsNames(this.oid)
+    if (!response.success) {
+      throw new MyError('Object not found', HttpStatusCode.BAD_REQUEST)
+    }
+    return (response.body!)
   }
 
   private async getSemanticInfo(options: Options) {

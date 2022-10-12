@@ -66,16 +66,19 @@ class Events {
      * @param oid 
      * @returns 
      */
-    public getEventChannelsNames(oid: string): string[] {
+    public getEventChannelsNames(oid: string): {success: boolean, body: string[] } {
         logger.debug('Retrieving event channels names for ' + oid)
         if (!clients.has(oid)) {
-            throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
+            return { success: false, body: [] }
+            // throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
         }
         const eventChannel =  this.eventChannels.get(oid)
         if (eventChannel) {
-            return Array.from(eventChannel.keys())
+            const eventList = Array.from(eventChannel.keys())
+            console.log(eventList)
+            return { success: true, body: eventList }
         } else {
-            return []
+            return { success: true, body: [] }
         }
     }
     /**

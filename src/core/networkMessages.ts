@@ -123,6 +123,22 @@ export function getEventChannelStatusNetwork(oid: string, eid: string, sourceOid
         }
     })
 }
+
+export function getEventChannelsNetwork(oid: string, sourceOid: string): Promise<{ message: string[] }> {
+    return new Promise((resolve, reject) => {
+        const xmppClient = clients.get(sourceOid)
+        if (xmppClient) {
+            xmppClient.sendStanza(oid, null, RequestOperation.GETLISTOFEVENTS, MessageType.REQUEST, {}, {}, (err: boolean, message: JsonType) => {
+                if (err) {
+                    reject(new MyError(message.error, message.status))
+                }
+                resolve({ message: message as string[] })
+            })
+        } else {
+            throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
+        }
+    })
+}
 /**
  * Send event message to remote object
  * @param sourceoid 

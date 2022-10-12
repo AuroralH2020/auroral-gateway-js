@@ -7,7 +7,7 @@ import { responseBuilder } from '../../utils/response-builder'
 // Imports
 import { startXMPPClient, stopXMPPClients, getRoster, initialize, getObjectInfo } from '../../core/xmpp'
 import { events } from '../../core/events'
-import { getPropertyNetwork, putPropertyNetwork, addSubscriberNetwork, removeSubscriberNetwork, getEventChannelStatusNetwork, sendEventNetwork, getObjectInfoNetwork } from '../../core/networkMessages'
+import { getPropertyNetwork, putPropertyNetwork, addSubscriberNetwork, removeSubscriberNetwork, getEventChannelStatusNetwork, sendEventNetwork, getObjectInfoNetwork, getEventChannelsNetwork } from '../../core/networkMessages'
 import { JsonType } from '../../types/misc-types'
 import { getPropertyLocaly, putPropertyLocaly } from '../../core/properties'
 
@@ -172,8 +172,14 @@ type GetEventChannelsCtrl = expressTypes.Controller<{ oid: string }, {}, {}, str
 export const getEventChannels: GetEventChannelsCtrl = async (req, res) => {
     const params = req.params
     try {
-        const eChannels = events.getEventChannelsNames(params.oid)
-        return responseBuilder(HttpStatusCode.OK, res, null, eChannels)
+        const localResponse = events.getEventChannelsNames(params.oid)
+        if (localResponse.success) {
+            return responseBuilder(HttpStatusCode.OK, res, null, localResponse.body!)
+        } else {
+            // network request
+            const remoteResponse = await getEventChannelsNetwork(params.oid, res.locals.oid)
+            return responseBuilder(HttpStatusCode.OK, res, null, remoteResponse.message)
+        }
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)
