@@ -365,6 +365,8 @@ export class XMPP {
         return this.processChannelUnsubscription(options as SubscribeChannelOpt)
       case RequestOperation.GETEVENTCHANNELSTATUS:
         return this.processChannelStatus(options as SubscribeChannelOpt)
+        case RequestOperation.GETLISTOFEVENTS:
+        return this.processEventList()
       case RequestOperation.GETTHINGDESCRIPTION:
         return this.getSemanticInfo(options)
       case RequestOperation.SENDNOTIFICATION:
@@ -411,6 +413,14 @@ export class XMPP {
       throw new MyError('Object not found', HttpStatusCode.BAD_REQUEST)
     }
     return ({ ...response.body })
+  }
+
+  private processEventList() {
+    const response = events.getEventChannelsNames(this.oid)
+    if (!response.success) {
+      throw new MyError('Object not found', HttpStatusCode.BAD_REQUEST)
+    }
+    return (response.body!)
   }
 
   private async getSemanticInfo(options: Options) {
