@@ -10,6 +10,7 @@ import { logger, errorHandler as eH } from './utils'
 import { events } from './core/events'
 import { Registrations } from './core/registrations'
 import { sendRecords } from './core/records'
+import { initializeDlt } from './core/dlt'
 
 /**
  * Error Handler. Provides full stack - only in dev
@@ -31,6 +32,7 @@ async function bootstrap () {
     const platformToken = await nm.handshake()
     nmToken.setCredentials(JSON.parse(platformToken.message))
     initialize(Config.GATEWAY.ID, Config.GATEWAY.PASSWORD)
+    initializeDlt()
     await startXMPPClient(Config.GATEWAY.ID)
     events.loadEventChannelsFromFile()
     await Registrations.start()
