@@ -72,7 +72,7 @@ export class XMPP {
     try {
       // Check if destination is in roster
       // Works in AURORAL, update for federated scenario!!! Same OID under different domain would be possible
-      const jid = this.rosterItemsOid.get(destinationOid)?.jid
+      const jid = this.verifyReceiver(destinationOid)
       if (!jid) {
         logger.warn('Destination ' + destinationOid + ' is not in the roster of ' + this.oid + ' or it is offline')
         throw new MyError('Destination OID not found in roster or it is offline, aborting message', HttpStatusCode.NOT_FOUND)
@@ -218,7 +218,7 @@ export class XMPP {
     this.reloadRoster()
     this.rosterReloadTimer = setInterval(() => {
       this.reloadRoster()
-    }, Number(Config.XMPP.ROSTER_REFRESH)) // 10 min
+    }, Number(Config.XMPP.ROSTER_REFRESH)) // every 3 min
   }
 
   private async onStanza(stanza: any) {
@@ -341,6 +341,19 @@ export class XMPP {
       // If in roster return with tampering validation
       return this.isTampering(from, jid)
     }
+  }
+
+  // Check if destination is in roster
+  private async verifyReceiver(destinationOid: string): Promise<string | undefined> {
+      // Works in AURORAL, update for federated scenario!!! Same OID under different domain would be possible
+      const jid = this.rosterItemsOid.get(destinationOid)?.jid
+      if (!jid) {
+          logger.debug('Destination ' + destinationOid + ' not in roster, refreshing roster...')
+          await this.reloadRoster(false)
+          return this.rosterItemsOid.get(destinationOid)?.jid
+      } else {
+        return jid
+      }
   }
 
   private isTampering (from: string, jid?: string) {
