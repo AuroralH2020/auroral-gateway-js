@@ -7,7 +7,7 @@ import got, { Method, Headers, Response } from 'got'
 import { Config } from '../config'
 import { logger, errorHandler, HttpStatusCode, MyError } from '../utils'
 import { GenericResponse } from '../types/nm-types'
-import { Token } from '../core/security'
+import { Token } from '../core/nodeToken'
 import { JsonType } from '../types/misc-types'
 import { RecordType } from '../types/xmpp-types'
 

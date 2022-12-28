@@ -19,6 +19,11 @@ export const Config = {
 		HOST: process.env.NM_HOST!,
 		TIMEOUT: process.env.NM_TIMEOUT || 10000 // 10 sec
 	},
+	DLT: {
+		HOST: process.env.DLT_HOST || 'http://auroralvm.dlt.iti.gr',
+		PORT: process.env.DLT_PORT || 3000,
+		MGMT_PORT: process.env.DLT_MGMT_PORT || 4002
+	},
 	TOKEN: {
 		TTL: process.env.GTW_TOKEN_TTL || 86400, // 1 day
 		REFRESH: process.env.GTW_TOKEN_REFRESH || 14400000 // 4h
