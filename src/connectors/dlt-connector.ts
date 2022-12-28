@@ -47,13 +47,14 @@ export const dlt = {
      * @async
      * @returns {error?: string, message: string} 
      */
-    getContractById: async function(ctid: string): Promise<GenericResponse<string>> {
+    getContractById: async function(ctid: string): Promise<JsonType> {
         try {
             return await request('auroral/acl-test/contract/' + ctid, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + nmToken.token })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Getting contract by ID failed...', HttpStatusCode.SERVICE_UNAVAILABLE)
-            throw new MyError(error.message)
+            logger.error(error)
+            throw error
         }
     },
     /**
@@ -61,13 +62,14 @@ export const dlt = {
      * @async
      * @returns {error?: string, message: string} 
      */
-    getOrgContract: async function(): Promise<GenericResponse<string>> {
+    getOrgContract: async function(): Promise<JsonType> {
         try {
             return await request('auroral/acl-test/contract/list', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + nmToken.token })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Getting org contracts failed...', HttpStatusCode.SERVICE_UNAVAILABLE)
-            throw new MyError(error.message)
+            logger.error(error)
+            throw error
         }
     },
     /**
@@ -75,13 +77,14 @@ export const dlt = {
      * @async
      * @returns {error?: string, message: string} 
      */
-    getOrgContractIDs: async function(): Promise<GenericResponse<string>> {
+    getOrgContractIDs: async function(): Promise<JsonType> {
         try {
             return await request('auroral/acl-test/contract/list/IDs', 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + nmToken.token })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Getting org contract IDs failed...', HttpStatusCode.SERVICE_UNAVAILABLE)
-            throw new MyError(error.message)
+            logger.error(error)
+            throw error
         }
     }
 }
@@ -104,10 +107,10 @@ export const dltMgmt = {
             if (error.status === 400) {
                 logger.warn('DLT User ' + user.email + ' already created...')
                 logger.error('Creating dlt user failed due to misformed request...', HttpStatusCode.BAD_REQUEST)
-                throw new MyError(error.message)
+                throw error
             }
             logger.error('Creating dlt user failed...', HttpStatusCode.SERVICE_UNAVAILABLE)
-            throw new MyError(error.message)
+            throw error
         }
     },
     /**
@@ -121,7 +124,7 @@ export const dltMgmt = {
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Validating user by email failed...', HttpStatusCode.SERVICE_UNAVAILABLE)
-            throw new MyError(error.message)
+            throw error
         }
     },
     /**
@@ -138,7 +141,7 @@ export const dltMgmt = {
                 return null
             }
             logger.error('Getting user by email failed...', HttpStatusCode.SERVICE_UNAVAILABLE)
-            throw new MyError(error.message)
+            throw error
         }
     },
      /**
@@ -152,15 +155,15 @@ export const dltMgmt = {
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Deleting user by email failed...', HttpStatusCode.SERVICE_UNAVAILABLE)
-            throw new MyError(error.message)
+            throw error
         }
     }   
 }
 
 // PRIVATE FUNCTIONS
 
-const request = async (endpoint: string, method: Method, json?: JsonType, headers?: Headers, searchParams?: string): Promise<GenericResponse> => {
-    const response = await callApi(endpoint, { method, json, headers, searchParams }) as unknown as Response<GenericResponse>
+const request = async (endpoint: string, method: Method, json?: JsonType, headers?: Headers, searchParams?: string): Promise<JsonType> => {
+    const response = await callApi(endpoint, { method, json, headers, searchParams }) as unknown as Response<JsonType>
     return response.body
 }
 

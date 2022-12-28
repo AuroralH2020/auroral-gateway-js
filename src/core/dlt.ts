@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { dltMgmt } from '../connectors/dlt-connector'
+import { dltMgmt, dlt } from '../connectors/dlt-connector'
 import { nm } from '../connectors/nm-connector'
 import { DltUser } from '../types/dlt-types'
 import { Config } from '../config'

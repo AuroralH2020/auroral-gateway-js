@@ -32,7 +32,7 @@ async function bootstrap () {
     const platformToken = await nm.handshake()
     nmToken.setCredentials(JSON.parse(platformToken.message))
     initialize(Config.GATEWAY.ID, Config.GATEWAY.PASSWORD)
-    initializeDlt()
+    await initializeDlt()
     await startXMPPClient(Config.GATEWAY.ID)
     events.loadEventChannelsFromFile()
     await Registrations.start()
