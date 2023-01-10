@@ -14,7 +14,7 @@ import { nm } from '../../src/connectors/nm-connector'
 jest.spyOn(fs, 'readFileSync').mockReturnValue(Buffer.from('test'))
 
 // tested file
-import { Token } from '../../src/core/security'
+import { Token } from '../../src/core/nodeToken'
 import { clients } from '../../src/core/xmpp'
 import { MyError } from '../../src/utils'
 
