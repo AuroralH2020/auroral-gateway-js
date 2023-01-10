@@ -22,7 +22,8 @@ export const Config = {
 	DLT: {
 		HOST: process.env.DLT_HOST || 'http://auroralvm.dlt.iti.gr',
 		PORT: process.env.DLT_PORT || 3000,
-		MGMT_PORT: process.env.DLT_MGMT_PORT || 4002
+		MGMT_PORT: process.env.DLT_MGMT_PORT || 4002,
+		ENABLED: process.env.DLT_ENABLED === 'true' ? true : false
 	},
 	TOKEN: {
 		TTL: process.env.GTW_TOKEN_TTL || 86400, // 1 day
