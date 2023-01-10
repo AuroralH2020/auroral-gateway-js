@@ -3,12 +3,14 @@ import stoppable from 'stoppable'
 import { stopAllXMPPClients, initialize, startXMPPClient } from './core/xmpp'
 import { app } from './app'
 import { Config } from './config'
-import { Token } from './core/security'
+import { Token } from './core/nodeToken'
+import { nmToken } from './core/platformToken'
 import { nm } from './connectors/nm-connector'
 import { logger, errorHandler as eH } from './utils'
 import { events } from './core/events'
 import { Registrations } from './core/registrations'
 import { sendRecords } from './core/records'
+import { initializeDlt } from './core/dlt'
 
 /**
  * Error Handler. Provides full stack - only in dev
@@ -27,8 +29,10 @@ async function bootstrap () {
     logger.info('##############################################')
     logger.info('Starting AURORAL gateway!!')
     await Token.start()
-    logger.info(await nm.handshake())
+    const platformToken = await nm.handshake()
+    nmToken.setCredentials(JSON.parse(platformToken.message))
     initialize(Config.GATEWAY.ID, Config.GATEWAY.PASSWORD)
+    await initializeDlt()
     await startXMPPClient(Config.GATEWAY.ID)
     events.loadEventChannelsFromFile()
     await Registrations.start()
