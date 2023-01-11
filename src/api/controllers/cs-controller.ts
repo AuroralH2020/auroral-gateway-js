@@ -61,7 +61,7 @@ export const roster: CtrlStringArray = async (_req, res) => {
 	}
 }
 
-type CtrlSparqlDiscovery = expressTypes.Controller<{ oid: string }, {}, JsonType | undefined, JsonType, { oid: string, password: string }>
+type CtrlSparqlDiscovery = expressTypes.Controller<{ oid: string }, {}, JsonType, JsonType, { oid: string, password: string }>
 
 export const discovery: CtrlSparqlDiscovery = async (req, res) => {
     const { oid } = res.locals

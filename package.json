@@ -1,6 +1,6 @@
 {
   "name": "auroral-js-gateway",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "XMPP Gateway for AURORAL",
   "main": "server.js",
   "scripts": {
@@ -51,6 +51,7 @@
     "jest": "^27.5.1",
     "jest-sonar-reporter": "^2.0.0",
     "nodemon": "^2.0.16",
+    "sonarqube-scanner": "^3.0.0",
     "ts-jest": "^27.1.3"
   },
   "jest": {

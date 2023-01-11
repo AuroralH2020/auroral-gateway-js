@@ -2,15 +2,19 @@ import dotenv from 'dotenv'
 import { logger } from './utils/logger'
 
 dotenv.config()
-if (
+if (process.env.NODE_ENV === 'test') {
+	logger.debug('Using test configuration...')
+} else if (
 	!process.env.NODE_ENV || !process.env.IP
 	|| !process.env.GTW_PORT || !process.env.XMPP_ENVIRONMENT
 ) {
 	logger.error('Please provide valid .env configuration')
 	process.exit()
+} else {
+	logger.debug('Using normal configuration...')
 }
 
-export const Config = {
+const normalConfig = {
 	HOME_PATH: process.cwd(),
 	NODE_ENV: process.env.NODE_ENV!,
 	IP: process.env.IP!,
@@ -22,7 +26,8 @@ export const Config = {
 	DLT: {
 		HOST: process.env.DLT_HOST || 'http://auroralvm.dlt.iti.gr',
 		PORT: process.env.DLT_PORT || 3000,
-		MGMT_PORT: process.env.DLT_MGMT_PORT || 4002
+		MGMT_PORT: process.env.DLT_MGMT_PORT || 4002,
+		ENABLED: process.env.DLT_ENABLED === 'true' ? true : false
 	},
 	TOKEN: {
 		TTL: process.env.GTW_TOKEN_TTL || 86400, // 1 day
@@ -55,3 +60,52 @@ export const Config = {
 		CACHE_TTL: process.env.DB_CACHE_TTL! // Time to live of the values cached from the adapter
 	}
 }
+
+const testConfig = {
+	HOME_PATH: process.cwd(),
+	NODE_ENV: 'test',
+	IP: '0.0.0.0',
+	PORT: '8181',
+	NM: {
+		HOST: 'https://auroral.dev.bavenir.eu',
+		TIMEOUT: 10000 // 10 sec
+	},
+	DLT: {
+		HOST: 'http://auroralvm.dlt.iti.gr',
+		PORT: 3000,
+		MGMT_PORT: 4002,
+		ENABLED: false
+	},
+	TOKEN: {
+		TTL: 86400, // 1 day
+		REFRESH: 14400000 // 4h
+	},
+	GATEWAY: {
+		ID: 'testtest',
+		PASSWORD: 'testtest'
+	},
+	XMPP: {
+		SERVICE: 'xmpp://auroral.dev.bavenir.eu:5222',
+		DOMAIN: 'auroral.dev.bavenir.eu',
+		RESOURCE: 'AuroralNode',
+		ROSTER_REFRESH: 300000, // Defaults 5 min
+		ENVIRONMENT: 'a',
+		SIGN_MESSAGES: false
+	},
+	EVENTS: {
+		SETTINGS_FILE: process.env.EVENT_SETTINGS_FILE || '/persistance/events.json',
+	},
+	AGENT: {
+		IP: 'localhost', 
+		PORT: 81,
+		TIMEOUT: 10000 // 10 sec
+	},
+	DB: {
+		HOST: 'localhost',
+		PORT: 6379,
+		PASSWORD: 'test',
+		CACHE_TTL: 0 // Time to live of the values cached from the adapter
+	}
+}
+
+export const Config = process.env.NODE_ENV === 'test' ? testConfig : normalConfig 
