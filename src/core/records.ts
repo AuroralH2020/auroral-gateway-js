@@ -47,7 +47,7 @@ export const addRecord = async (messageType: RequestOperation,
 export const sendRecords = async (): Promise<void> => {
     try {
         // Verify that there is something to send before sending to NM
-        if (records.length > 0) {
+        if (records.length > 0 && records.length <= 100) {
             logger.debug('Sending records [' + String(records.length) + '] [size: ' + Buffer.byteLength(records.toString(), 'utf8') + ']')
             // Implement queue here ?
             const recordsToSend = [...records]
@@ -55,6 +55,17 @@ export const sendRecords = async (): Promise<void> => {
             await nm.postCounters(recordsToSend)
             // Remove records to be sent (Splice to avoid removing recent records)
             records.splice(0, recordsToSend.length)
+            counter = 0
+        } 
+        if (records.length > 100) {
+            const recordsToSend = records.slice(0, 100)
+            logger.debug('Sending records [100] [size: ' + Buffer.byteLength(recordsToSend.toString(), 'utf8') + ']')
+            // Implement queue here ?
+            // Send records
+            await nm.postCounters(recordsToSend)
+            // Remove records to be sent (Splice to avoid removing recent records)
+            records.splice(0, recordsToSend.length)
+            counter = 0
         } 
     } catch (err: unknown) {
         const error = errorHandler(err)
