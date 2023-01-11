@@ -72,7 +72,7 @@ export class XMPP {
     try {
       // Check if destination is in roster
       // Works in AURORAL, update for federated scenario!!! Same OID under different domain would be possible
-      const jid = this.verifyReceiver(destinationOid)
+      const jid = await this.verifyReceiver(destinationOid)
       if (!jid) {
         logger.warn('Destination ' + destinationOid + ' is not in the roster of ' + this.oid + ' or it is offline')
         throw new MyError('Destination OID not found in roster or it is offline, aborting message', HttpStatusCode.NOT_FOUND)
