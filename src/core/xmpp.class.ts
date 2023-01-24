@@ -46,7 +46,7 @@ export class XMPP {
   // Public methods
 
   public async start() {
-    this.client.start({}).catch(
+    this.client.start().catch(
       (err: unknown) => {
         const error = errorHandler(err)
         // TODO consider test if not offline before running start()
@@ -151,6 +151,10 @@ export class XMPP {
   public async reloadRoster(cleanBlacklist = true) {
     logger.info('Reloading roster of oid ' + this.oid + '...')
     const roster = await this.client.iqCaller.get(xml('query', 'jabber:iq:roster'))
+    if (!roster) {
+      logger.error('Error reloading roster of oid ' + this.oid + '...')
+      return
+    }
     const rosterItems = roster.getChildren('item', 'jabber:iq:roster')
     if (cleanBlacklist) {
       this.blacklistedSenders.clear()
@@ -158,9 +162,9 @@ export class XMPP {
     this.rosterItemsOid.clear()
     this.rosterItemsJid.clear()
     for (let i = 0, l = rosterItems.length; i < l; i++) {
-      this.rosterItemsJid.set(rosterItems[i].attrs.jid, rosterItems[i].attrs)
+      this.rosterItemsJid.set(rosterItems[i].attrs.jid, rosterItems[i].attrs as RosterItem)
       const userName = jidNs.jid(rosterItems[i].attrs.jid).getLocal() // Fix because 'username' is not always the same as 'name'
-      this.rosterItemsOid.set(userName, rosterItems[i].attrs)
+      this.rosterItemsOid.set(userName, rosterItems[i].attrs as RosterItem)
     }
   }
 

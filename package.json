@@ -42,6 +42,7 @@
     "@types/jsonwebtoken": "^8.5.8",
     "@types/redis": "^2.8.29",
     "@types/stoppable": "^1.1.1",
+    "@types/xmpp__client": "^0.13.0",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
     "concurrently": "^7.2.2",

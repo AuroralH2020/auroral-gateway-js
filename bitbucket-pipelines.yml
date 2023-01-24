@@ -9,6 +9,7 @@ definitions:
           - node -v
           - npm -v
           - npm install
+          - npx tsc -v 
           - npx tsc
           - NODE_ENV=test npx jest --verbose --runInBand --silent --forceExit --coverage
           - ls -la
