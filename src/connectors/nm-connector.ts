@@ -226,6 +226,12 @@ export const nm = {
     getPubkey: async function(agid: string): Promise<GenericResponse<string>> {
         logger.debug('Requesting pubkey from NM: ' + agid)
         return request(`agent/key/${agid}`, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })  
+    },
+    /**
+     * Send node info to NM
+     */
+    sendNodeInfo: async function(nodeInfo: JsonType): Promise<GenericResponse<JsonType>> {
+        return request('info', 'POST', nodeInfo, { ...ApiHeader, 'authorization': 'Bearer ' + Token.token })
     }
 }
 

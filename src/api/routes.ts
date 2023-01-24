@@ -10,7 +10,7 @@ import { Router } from 'express'
 // Middlewares
 import { basicAuth } from './guard'
 // Controllers
-import { nm_ctrl, cs_ctrl, dlt_ctrl } from './controllers'
+import { nm_ctrl, cs_ctrl, dlt_ctrl, gtw_ctrl } from './controllers'
 
 const ApiRouter = Router()
 
@@ -67,5 +67,9 @@ ApiRouter
 // DLT
 .get('/dlt/contracts', basicAuth(), dlt_ctrl.getContracts) // getContracts
 .get('/dlt/contracts/:ctid', basicAuth(), dlt_ctrl.getContractInfo) // getContractInfo (Item's privacy)
+
+// INFO
+.get('/healthcheck', basicAuth(), gtw_ctrl.healthcheck) // Get gateway info
+.post('/nodeInfo', basicAuth(), nm_ctrl.sendNodeInfo) // Node info to NM
 
 export { ApiRouter }
