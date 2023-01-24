@@ -8,9 +8,10 @@ definitions:
           - echo 'Starting pipeline'
           - node -v
           - npm -v
-          - npm install
+          - npm ci
           - npm install -g typescript@4.7.4
           # - npx tsc -v 
+          - tsc
           - npx tsc
           - NODE_ENV=test npx jest --verbose --runInBand --silent --forceExit --coverage
           - ls -la
