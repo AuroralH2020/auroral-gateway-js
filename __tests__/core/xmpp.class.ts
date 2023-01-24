@@ -14,7 +14,7 @@ import { agent } from '../../src/connectors/agent-connector'
 import { nm } from '../../src/connectors/nm-connector'
 import * as xmppClient from '@xmpp/client'
 jest.spyOn(fs, 'readFileSync').mockReturnValue(Buffer.from('test'))
-jest.spyOn(xmppClient, 'client').mockReturnValue({ on: () => {}, start: async () => {} })
+jest.spyOn(xmppClient, 'client').mockReturnValue({ on: () => {}, start: async () => {} } as unknown as xmppClient.Client)
 // tested file
 import { XMPP } from '../../src/core/xmpp.class'
 import * as xmpp from '../../src/core/xmpp'
