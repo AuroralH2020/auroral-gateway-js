@@ -8,7 +8,7 @@ definitions:
           - echo 'Starting pipeline'
           - node -v
           - npm -v
-          - npm ci
+          - npm install
           - npm install -g typescript@4.7.4
           # - npx tsc -v 
           - npx tsc
