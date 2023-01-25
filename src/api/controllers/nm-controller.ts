@@ -10,6 +10,7 @@ import { nm } from '../../connectors/nm-connector'
 import { JsonType } from '../../types/misc-types'
 import { Registrations } from '../../core/registrations'
 import { reloadRoster } from '../../core/xmpp'
+import { getAgid } from '../../core/encryption'
 
 // Controllers
 
@@ -237,6 +238,20 @@ export const sendNodeInfo: sendNodeInfoCtrl = async (req, res) => {
         try {
                 const response = await nm.sendNodeInfo(info)
                 return responseBuilder(HttpStatusCode.OK, res, null, response.message)
+        } catch (err) {
+                const error = errorHandler(err)
+                logger.error(error.message)
+                return responseBuilder(error.status, res, error.message)
+        }
+}
+
+type getAgentByOidCtrl = expressTypes.Controller<{ oid: string }, {}, {}, string, {}>
+export const getAgentByOid: getAgentByOidCtrl = async (req, res) => {
+        const { oid } = req.params
+        try {
+                // using getAgid from encryption, it has caching built in
+                const response = await getAgid(oid)
+                return responseBuilder(HttpStatusCode.OK, res, null, response)
         } catch (err) {
                 const error = errorHandler(err)
                 logger.error(error.message)

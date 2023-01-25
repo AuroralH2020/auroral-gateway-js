@@ -6,8 +6,9 @@
  import { responseBuilder } from '../utils/response-builder'
 import { Registrations } from '../core/registrations'
 import { HttpStatusCode, errorHandler, logger } from '../utils'
+import { BasicAuthLocals } from '../types/locals-types'
 
- type basicAuthCtrl = expressTypes.Controller<{}, {}, {}, void, { oid: string, password: string }>
+ type basicAuthCtrl = expressTypes.Controller<{}, {}, {}, void, BasicAuthLocals>
  
  export const basicAuth = () => {
      return function (req, res, next) {

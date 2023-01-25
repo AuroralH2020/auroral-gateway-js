@@ -150,7 +150,7 @@ async function getPubkey(agid: string, forceReload = false): Promise<string> {
     }
 }
 
-async function getAgid(oid: string): Promise<string> {
+export async function getAgid(oid: string): Promise<string> {
     try {
         let agid = await redisDb.get('agid' + oid)
         if (!agid) {

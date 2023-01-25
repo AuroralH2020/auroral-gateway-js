@@ -7,12 +7,13 @@ import { responseBuilder } from '../../utils/response-builder'
 // Imports
 import { dlt } from '../../connectors/dlt-connector'
 import { JsonType } from '../../types/misc-types'
+import { BasicAuthLocals } from '../../types/locals-types'
 
 /**
  * Controllers
  */   
 
-type CtrlContracts = expressTypes.Controller<{}, {}, {}, JsonType, { oid: string, password: string }>
+type CtrlContracts = expressTypes.Controller<{}, {}, {}, JsonType, BasicAuthLocals>
 
 export const getContracts: CtrlContracts = async (_req, res) => {
     const { oid, password } = res.locals
@@ -26,7 +27,7 @@ export const getContracts: CtrlContracts = async (_req, res) => {
 	}
 }
 
-type CtrlContractInfo = expressTypes.Controller<{ ctid: string }, {}, {}, JsonType, { oid: string, password: string }>
+type CtrlContractInfo = expressTypes.Controller<{ ctid: string }, {}, {}, JsonType, BasicAuthLocals>
 
 export const getContractInfo: CtrlContractInfo = async (req, res) => {
     const { oid, password } = res.locals

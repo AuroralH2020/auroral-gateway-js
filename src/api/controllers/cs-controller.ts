@@ -10,6 +10,7 @@ import { events } from '../../core/events'
 import { getPropertyNetwork, putPropertyNetwork, addSubscriberNetwork, removeSubscriberNetwork, getEventChannelStatusNetwork, sendEventNetwork, getObjectInfoNetwork, getEventChannelsNetwork } from '../../core/networkMessages'
 import { JsonType } from '../../types/misc-types'
 import { getPropertyLocaly, putPropertyLocaly } from '../../core/properties'
+import { BasicAuthLocals } from '../../types/locals-types'
 
 /**
  * Controllers
@@ -17,7 +18,7 @@ import { getPropertyLocaly, putPropertyLocaly } from '../../core/properties'
 
 // Authentication controllers
 
-type Ctrl = expressTypes.Controller<{}, {}, {}, null, { oid: string, password: string }>
+type Ctrl = expressTypes.Controller<{}, {}, {}, null, BasicAuthLocals>
 
 export const start: Ctrl = async (_req, res) => {
     const { oid, password } = res.locals
@@ -47,7 +48,7 @@ export const stop: Ctrl = async (_req, res) => {
 
 // Discovery controllers
 
-type CtrlStringArray = expressTypes.Controller<{}, {}, {}, string[], { oid: string, password: string }>
+type CtrlStringArray = expressTypes.Controller<{}, {}, {}, string[], BasicAuthLocals>
 
 export const roster: CtrlStringArray = async (_req, res) => {
     const { oid } = res.locals
@@ -61,7 +62,7 @@ export const roster: CtrlStringArray = async (_req, res) => {
 	}
 }
 
-type CtrlSparqlDiscovery = expressTypes.Controller<{ oid: string }, {}, JsonType, JsonType, { oid: string, password: string }>
+type CtrlSparqlDiscovery = expressTypes.Controller<{ oid: string }, {}, JsonType, JsonType, BasicAuthLocals>
 
 export const discovery: CtrlSparqlDiscovery = async (req, res) => {
     const { oid } = res.locals
@@ -84,7 +85,7 @@ export const discovery: CtrlSparqlDiscovery = async (req, res) => {
 
 // Resource consumption controllers
 
-type getPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string}, {}, JsonType, JsonType, { oid: string, password: string }>
+type getPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string}, {}, JsonType, JsonType, BasicAuthLocals>
 
 export const getProperty: getPropertyCtrl = async (req, res) => {
     const { oid } = res.locals
@@ -109,7 +110,7 @@ export const getProperty: getPropertyCtrl = async (req, res) => {
     }
 }
 
-type PutPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string }, JsonType, JsonType, JsonType, { oid: string, password: string }>
+type PutPropertyCtrl = expressTypes.Controller<{ oid: string, pid: string }, JsonType, JsonType, JsonType, BasicAuthLocals>
 
 export const putProperty: PutPropertyCtrl = async (req, res) => {
     const { oid } = res.locals
@@ -137,7 +138,7 @@ export const putProperty: PutPropertyCtrl = async (req, res) => {
 
 // Event controllers
 
-type ActivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, {}, { oid: string, password: string }>
+type ActivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, {}, BasicAuthLocals>
 
 export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) => {
     const { oid } = res.locals
@@ -152,7 +153,7 @@ export const activateEventChannel: ActivateEventChannelCtrl = async (req, res) =
     }
 }
 
-type DectivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, {}, { oid: string, password: string }>
+type DectivateEventChannelCtrl = expressTypes.Controller<{ eid: string }, {}, {}, {}, BasicAuthLocals>
 
 export const dectivateEventChannel: DectivateEventChannelCtrl = async (req, res) => {
     const { oid } = res.locals
@@ -167,7 +168,7 @@ export const dectivateEventChannel: DectivateEventChannelCtrl = async (req, res)
     }
 }
 
-type GetEventChannelsCtrl = expressTypes.Controller<{ oid: string }, {}, {}, string[], { oid: string, password: string }>
+type GetEventChannelsCtrl = expressTypes.Controller<{ oid: string }, {}, {}, string[], BasicAuthLocals>
 
 export const getEventChannels: GetEventChannelsCtrl = async (req, res) => {
     const params = req.params
@@ -187,7 +188,7 @@ export const getEventChannels: GetEventChannelsCtrl = async (req, res) => {
     }
 }
 
-type SubscribeToEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
+type SubscribeToEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, BasicAuthLocals>
 
 export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, res) => {
     const { oid } = res.locals
@@ -207,7 +208,7 @@ export const subscribeToEventChannel: SubscribeToEventChannelCtrl = async (req, 
     }
 }
 
-type UnsubscribeFromEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
+type UnsubscribeFromEventChannelCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, BasicAuthLocals>
 
 export const unsubscribeFromEventChannel: UnsubscribeFromEventChannelCtrl = async (req, res) => {
     const { oid } = res.locals
@@ -227,7 +228,7 @@ export const unsubscribeFromEventChannel: UnsubscribeFromEventChannelCtrl = asyn
     }
 }
 
-type PublishEventToChannelCtrl = expressTypes.Controller<{ eid: string }, JsonType, {}, string, { oid: string, password: string }>
+type PublishEventToChannelCtrl = expressTypes.Controller<{ eid: string }, JsonType, {}, string, BasicAuthLocals>
 
 export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res) => {
     const { oid } = res.locals
@@ -247,7 +248,7 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
             }
         }
         // TBD: Do we need to wait for responses?
-        return responseBuilder(HttpStatusCode.OK, res, null, 'Event distributed to N subscribers')
+        return responseBuilder(HttpStatusCode.OK, res, null, 'Event distributed to N subscribers' as string)
     } catch (err: unknown) {
         const error = errorHandler(err)
         logger.error(error.message)
@@ -255,7 +256,7 @@ export const publishEventToChannel: PublishEventToChannelCtrl = async (req, res)
     }
 }
 
-type EventChannelStatusCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, { oid: string, password: string }>
+type EventChannelStatusCtrl = expressTypes.Controller<{ oid: string, eid: string }, {}, {}, string, BasicAuthLocals>
 
 export const eventChannelStatus: EventChannelStatusCtrl = async (req, res) => {
     const { oid } = res.locals
