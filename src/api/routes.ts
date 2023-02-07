@@ -64,6 +64,8 @@ ApiRouter
 // SECURITY
 .get('/security/privacy', basicAuth(), nm_ctrl.getAgentPrivacy) // getItemsPrivacy
 .get('/security/contracts/:cid', basicAuth(), nm_ctrl.getContractedItemsByCid) // getContracts
+.get('/security/validate', basicAuth(), gtw_ctrl.validateExternal) // Validate JWT from HTTP calls
+.get('/security/sign/:sourceOid/:oid/:pid', basicAuth(), gtw_ctrl.signExternal) // Sign JWT for external calls
 
 // DLT
 .get('/dlt/contracts', basicAuth(), dlt_ctrl.getContracts) // getContracts

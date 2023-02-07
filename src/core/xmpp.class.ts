@@ -314,7 +314,7 @@ export class XMPP {
   }
 
   // check if sender is in roster + check tampering and relaods roster if needed
-  private async verifySender(sourceOid: string, from: string): Promise<boolean> {
+  public async verifySender(sourceOid: string, from: string): Promise<boolean> {
     // check if sender is in roster
     let jid = this.rosterItemsOid.get(sourceOid)?.jid
     // Platform notification - valid
@@ -348,7 +348,7 @@ export class XMPP {
   }
 
   // Check if destination is in roster
-  private async verifyReceiver(destinationOid: string): Promise<string | undefined> {
+  public async verifyReceiver(destinationOid: string): Promise<string | undefined> {
       // Works in AURORAL, update for federated scenario!!! Same OID under different domain would be possible
       const jid = this.rosterItemsOid.get(destinationOid)?.jid
       if (!jid) {

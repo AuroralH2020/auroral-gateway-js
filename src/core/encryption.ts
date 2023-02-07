@@ -134,7 +134,7 @@ function encrypt(key: string, message: string, usePrivateKey: boolean): string {
     }
 }
 
-async function getPubkey(agid: string, forceReload = false): Promise<string> {
+export async function getPubkey(agid: string, forceReload = false): Promise<string> {
     try {
         let pubkey = await redisDb.get('pubkey' + agid)
         if (!pubkey || forceReload) {

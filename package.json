@@ -31,6 +31,7 @@
     "jsonwebtoken": "^8.5.1",
     "redis": "^3.1.2",
     "stoppable": "^1.1.0",
+    "uuid": "^9.0.0",
     "winston": "^3.7.2"
   },
   "devDependencies": {
@@ -42,6 +43,7 @@
     "@types/jsonwebtoken": "^8.5.8",
     "@types/redis": "^2.8.29",
     "@types/stoppable": "^1.1.1",
+    "@types/uuid": "^9.0.0",
     "@types/xmpp__client": "^0.13.0",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
