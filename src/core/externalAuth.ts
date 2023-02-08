@@ -40,7 +40,7 @@ class HttpTokenGenerator {
         }
     }
 
-    public generateToken(sourceoid: string, oid: string, pid: string) : string {
+    public generateToken(sourceOid: string, oid: string, pid: string) : string {
         // Define token claims
         const token = jwt.sign(
             {
@@ -48,8 +48,8 @@ class HttpTokenGenerator {
                 aud: this.aud,
                 exp: Math.floor(Date.now() / 1000) + Number(Config.TOKEN.TTL),
                 iat: Math.floor(Date.now() / 1000),
-                sourceoid: sourceoid,
-                agid: this.iss,
+                sourceOid: sourceOid,
+                sourceAgid: this.iss,
                 oid: oid,
                 pid: pid,
                 requestId: v4()
@@ -62,9 +62,12 @@ class HttpTokenGenerator {
 
     public async verifyToken(token: string) : Promise<{ sourceOid: string; oid: string; pid: string, requestId: string} > {
         // extract senders agid to retrieve its public key
-        const agid = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()).sourceAgid
+        const unverifiedDecoded = jwt.decode(token)  as JWTTokenClaims
+        if (!unverifiedDecoded) {
+            throw new MyError('Token is not valid, returning 401...', HttpStatusCode.UNAUTHORIZED)
+        }
         // load public key
-        const remote_pubkey = await getPubkey(agid)
+        const remote_pubkey = await getPubkey(unverifiedDecoded.sourceAgid)
         // remove Bearer from token
         // verify token and return claims
         const decoded = jwt.verify(token, remote_pubkey, { algorithms: [this.ASYNC_ALG] }) as JWTTokenClaims
@@ -83,7 +86,7 @@ export const authenticate = async (token: string): Promise<void> => {
     if (xmpp) {
         // TBD Get the origin of the request from KAFKA or XMPP, to do the origin tampering verification
         // TBD Replace second origin source OID accordingly
-        const jid = await xmpp.verifySender(decoded.sourceOid, decoded.sourceOid)
+        const jid = await xmpp.verifySender(`${decoded.sourceOid}@${Config.XMPP.DOMAIN}`, `${decoded.sourceOid}@${Config.XMPP.DOMAIN}`)
         if (!jid) {
             throw new MyError('Sender is not in roster, returning 401...', HttpStatusCode.UNAUTHORIZED)
         }
