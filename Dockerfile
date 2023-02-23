@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:16-slim as base
+FROM node:16-slim as base
 LABEL version="1.0"
 LABEL maintaner="jorge.almela@bavenir.eu"
 LABEL release-date="17-07-2022"
@@ -8,7 +8,7 @@ RUN mkdir /gateway/persistance && chown -R node:node /gateway/persistance
 
 RUN apt update && apt install -y openssl && apt-get clean 
 
-FROM --platform=$BUILDPLATFORM base as develop
+FROM base as develop
 
 WORKDIR /gateway
 COPY --chown=node:node package*.json tsconfig.json ./

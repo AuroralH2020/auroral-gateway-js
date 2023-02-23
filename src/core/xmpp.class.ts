@@ -319,7 +319,6 @@ export class XMPP {
     let jid = this.rosterItemsOid.get(sourceOid)?.jid
     // Platform notification - valid
     if (sourceOid.toLowerCase().includes(Config.XMPP.ENVIRONMENT)) {
-      logger.info('Incoming cloud notification from... ' + sourceOid)
       return true
     }
     if (!jid) {
