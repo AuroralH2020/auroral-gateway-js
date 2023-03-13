@@ -24,9 +24,9 @@ const normalConfig = {
 		TIMEOUT: process.env.NM_TIMEOUT || 10000 // 10 sec
 	},
 	DLT: {
-		HOST: process.env.DLT_HOST || 'http://auroralvm.dlt.iti.gr',
-		PORT: process.env.DLT_PORT || 3000,
-		MGMT_PORT: process.env.DLT_MGMT_PORT || 4002,
+		HOST: process.env.DLT_HOST || 'https://auroralvm.dlt.iti.gr',
+		PORT: process.env.DLT_PORT || 443,
+		MGMT_PORT: process.env.DLT_MGMT_PORT || 9090,
 		ENABLED: process.env.DLT_ENABLED === 'true' ? true : false
 	},
 	TOKEN: {

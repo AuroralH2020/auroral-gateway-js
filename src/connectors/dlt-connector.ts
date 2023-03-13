@@ -97,7 +97,7 @@ export const dltMgmt = {
      */
     createUser: async function(user: DltUserCreate): Promise<DltUser | null> {
         try {
-            return await requestMgmt('users', 'POST', user, { ...ApiHeader }) as DltUser
+            return await requestMgmt('users', 'POST', user, { ...ApiHeader, 'authorization': 'Bearer ' + nmToken.token }) as DltUser
         } catch (err: unknown) {
             const error = errorHandler(err)
             if (error.status === 409) {
@@ -120,7 +120,7 @@ export const dltMgmt = {
      */
     validateUser: async function(email: string): Promise<void> {
         try {
-            const resp = await requestMgmt('users/' + email, 'PATCH', undefined, { ...ApiHeader })
+            const resp = await requestMgmt('users/' + email, 'PATCH', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + nmToken.token })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Validating user by email failed...', HttpStatusCode.SERVICE_UNAVAILABLE)
@@ -134,7 +134,7 @@ export const dltMgmt = {
      */
     getUser: async function(email: string): Promise<DltUser | null> {
         try {
-            return await requestMgmt('users/' + email, 'GET', undefined, { ...ApiHeader }) as DltUser
+            return await requestMgmt('users/' + email, 'GET', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + nmToken.token }) as DltUser
         } catch (err: unknown) {
             const error = errorHandler(err)
             if (error.status === 400) {
@@ -151,7 +151,7 @@ export const dltMgmt = {
      */
      deleteUser: async function(email: string): Promise<void> {
         try {
-            const resp = await requestMgmt('users/' + email, 'DELETE', undefined, { ...ApiHeader })
+            const resp = await requestMgmt('users/' + email, 'DELETE', undefined, { ...ApiHeader, 'authorization': 'Bearer ' + nmToken.token })
         } catch (err: unknown) {
             const error = errorHandler(err)
             logger.error('Deleting user by email failed...', HttpStatusCode.SERVICE_UNAVAILABLE)

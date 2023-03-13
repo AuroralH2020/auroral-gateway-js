@@ -3,11 +3,13 @@ import { dltMgmt, dlt } from '../connectors/dlt-connector'
 import { nm } from '../connectors/nm-connector'
 import { DltUser } from '../types/dlt-types'
 import { Config } from '../config'
-import { logger, errorHandler, HttpStatusCode, MyError } from '../utils'
+import { logger, errorHandler } from '../utils'
+
+const mailSuffix = '@node.auroral.eu'
 
 export const initializeDlt = async () => {
     try {
-        const user = await dltMgmt.getUser(Config.GATEWAY.ID.substring(0,23) + '@auroral.eu')
+        const user = await dltMgmt.getUser(Config.GATEWAY.ID.substring(0,23) + mailSuffix)
         if (user) {
             dltUser.initialize(user)
             logger.info('DLT user active, initialization finalised successfully!')
@@ -15,7 +17,7 @@ export const initializeDlt = async () => {
             const cid = (await nm.getCidFromReqid(Config.GATEWAY.ID)).message as unknown as string
             const user = await dltMgmt.createUser({
                 username: Config.GATEWAY.ID,
-                email: Config.GATEWAY.ID.substring(0,23) + '@auroral.eu',
+                email: Config.GATEWAY.ID.substring(0,23) + mailSuffix,
                 password: crypto.randomBytes(8).toString('hex'),
                 attributes: {
                     cid
