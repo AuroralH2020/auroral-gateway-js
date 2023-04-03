@@ -71,7 +71,7 @@ const testConfig = {
 		TIMEOUT: 10000 // 10 sec
 	},
 	DLT: {
-		HOST: 'http://auroralvm.dlt.iti.gr',
+		HOST: 'https://auroralvm.dlt.iti.gr',
 		PORT: 3000,
 		MGMT_PORT: 4002,
 		ENABLED: false

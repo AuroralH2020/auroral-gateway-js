@@ -51,6 +51,9 @@ export class XMPP {
         const error = errorHandler(err)
         // TODO consider test if not offline before running start()
         if (error.message !== 'Connection is not offline') {
+          if (error.message === 'not-authorized') {
+            logger.warn('Please double check that you password is correct?')
+          }
           console.log(err)
           logger.error('XMPP connection for oid ' + this.oid + ' could not be established')
           logger.error(error.message)
