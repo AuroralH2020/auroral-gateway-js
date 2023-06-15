@@ -399,7 +399,7 @@ export class XMPP {
   private async processNotification(options: NotificationOpt) {
     try {
       logger.debug('Sending notification to agent')
-      await agent.notify(options.originOid, Config.GATEWAY.ID, options.nid, options.requestBody ? options.requestBody : {})
+      await agent.notify(options.originOid, Config.GATEWAY.ID, options.nid, options.body ? options.body : {})
       // Notification -> reload all rosters
       // Reloading all rosters is maybe not necessary
       await reloadAllRosters()

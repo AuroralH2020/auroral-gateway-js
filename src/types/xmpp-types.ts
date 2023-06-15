@@ -93,7 +93,9 @@ export interface Options {
   }
 
   export interface NotificationOpt extends Options {
-    nid: string
+    nid: string,
+    body: JsonType | null
+
   }
   
 //   export interface OptionsAction extends Options {
