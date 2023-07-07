@@ -33,13 +33,18 @@ class Events {
         if (!xmppClient) {
             throw new MyError('XMPP client ' + oid + ' does not exist', HttpStatusCode.NOT_FOUND)
         }
-        const eventChannel =  this.eventChannels.get(oid)
-        if (!eventChannel) {
+        const eventChannelsOid =  this.eventChannels.get(oid)
+        if (!eventChannelsOid) {
             const newEventChannel: Map<string,EventHandler> = new Map()
             newEventChannel.set(eid, new EventHandler(oid, eid))
             this.eventChannels.set(oid, newEventChannel)
         } else {
-            this.eventChannels.set(oid, new Map<string, EventHandler>().set(eid, new EventHandler(oid, eid)))
+            if (!eventChannelsOid.get(eid)) {
+                this.eventChannels.set(oid, eventChannelsOid.set(eid, new EventHandler(oid, eid)))
+                logger.info('Channel ' + eid + ' in object ' + oid + ' created')
+            } else {
+                logger.warn('Channel ' + eid + ' in object ' + oid + ' already exists...')
+            }
         }
     }
     /**
