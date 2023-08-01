@@ -229,13 +229,19 @@ export class XMPP {
   }
 
   private async onStanza(stanza: any) {
+    const { _to, from, type } = stanza.attrs as { _to: string, from: string, type: string }
     if (!stanza.is('message')) {
       // I.e. presence, ...
-      // logger.debug('Stanza received: Not message type')
-      // logger.debug(stanza.toString())
-      return
+      if (type === 'result') {
+        logger.debug('Stanza received: Not message type, type is: --> ' + type)
+        console.debug(stanza.attrs.toString())
+        return
+      } else {
+        logger.debug('Stanza received: Not message type, type is: --> ' + type)
+        logger.debug(stanza.toString())
+        return
+      }
     }
-    const { _to, from, type } = stanza.attrs as { _to: string, from: string, type: string }
     // ERROR
     if (type === 'error') {
       logger.debug(this.oid + ' receiving error response...')
@@ -313,7 +319,10 @@ export class XMPP {
       return
     } 
     // UNKNOWN Message type
-    logger.debug('Gateway received unknown message type: ' + type)
+    logger.debug('Gateway received stanza message of unknown type: Not chat nor error')
+    logger.debug('FROM: ' + from)
+    console.log(stanza.toString())
+    console.log(stanza.attrs)
   }
 
   // check if sender is in roster + check tampering and relaods roster if needed
