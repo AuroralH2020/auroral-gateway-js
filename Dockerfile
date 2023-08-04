@@ -25,5 +25,6 @@ USER node
 COPY --chown=node:node dist ./dist
 RUN rm -rf /gateway/package-lock.json
 
-CMD ["node", "/app/dist/src/server.js"]
+CMD ["node", "/gateway/dist/src/server.js"]
+
 
