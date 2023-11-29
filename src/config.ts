@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 import { logger } from './utils/logger'
 
 dotenv.config()
+
 if (process.env.NODE_ENV === 'test') {
 	logger.debug('Using test configuration...')
 } else if (
@@ -17,6 +18,8 @@ if (process.env.NODE_ENV === 'test') {
 const normalConfig = {
 	HOME_PATH: process.cwd(),
 	NODE_ENV: process.env.NODE_ENV!,
+	// This one is not used. Logger.ts uses directly the env variable
+	LOGGER_LEVEL: process.env.LOGGER_LEVEL! ? process.env.LOGGER_LEVEL : 'info',
 	IP: process.env.IP!,
 	PORT: process.env.GTW_PORT!,
 	NM: {
@@ -64,6 +67,7 @@ const normalConfig = {
 const testConfig = {
 	HOME_PATH: process.cwd(),
 	NODE_ENV: 'test',
+	LOGGER_LEVEL: 'debug',
 	IP: '0.0.0.0',
 	PORT: '8181',
 	NM: {
