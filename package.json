@@ -1,6 +1,6 @@
 {
   "name": "auroral-js-gateway",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "XMPP Gateway for AURORAL",
   "main": "server.js",
   "scripts": {
