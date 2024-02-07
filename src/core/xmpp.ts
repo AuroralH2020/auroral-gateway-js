@@ -5,8 +5,11 @@ import { MyError, HttpStatusCode, logger } from '../utils'
 import { XMPP } from './xmpp.class'
 import { JsonType } from '../types/misc-types'
 import { agent } from '../connectors/agent-connector'
+import { Config } from '../config'
 
 export const clients = new Map<string, XMPP>()
+// timer to reload rosters
+let rosterReloadTimer: NodeJS.Timeout
 
 /**
  * Generator of XMPP clients
@@ -125,3 +128,5 @@ export const getObjectInfo =  async function (sourceoid: string, destinationOid:
         return { success: false, body: {} }
     }
 }
+
+rosterReloadTimer = setInterval(reloadAllRosters, Number(Config.XMPP.ROSTER_REFRESH))
